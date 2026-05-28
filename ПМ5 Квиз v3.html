@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ПМ5 Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f2f7;
+  --card:#ffffff;
+  --border:#e2e6ef;
+  --blue:#3b6ef8;
+  --blue2:#1a4ad4;
+  --green:#16a34a;
+  --red:#dc2626;
+  --yellow:#f59e0b;
+  --text:#1a1f36;
+  --muted:#6b7280;
+  --light:#f8f9fc;
+  --shadow:0 2px 16px rgba(59,110,248,.10);
+  --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Onest',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px;}
+.app{max-width:700px;margin:0 auto;}
+
+/* HEADER */
+.header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:14px 18px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);}
+.logo-icon{width:38px;height:38px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.logo-text{font-size:15px;font-weight:700;color:var(--text);}
+.logo-sub{font-size:12px;color:var(--muted);margin-top:1px;}
+.header-right{margin-left:auto;text-align:right;}
+.q-counter{font-size:13px;font-weight:700;color:var(--blue);}
+.q-total{font-size:11px;color:var(--muted);}
+
+/* MODE BAR */
+.mode-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.mode-btn{flex:1;min-width:80px;padding:9px 8px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;font-family:'Onest',sans-serif;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;}
+.mode-btn:hover{border-color:var(--blue);color:var(--blue);}
+.mode-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+/* STATS ROW */
+.stats{display:flex;gap:10px;margin-bottom:16px;}
+.stat{flex:1;background:var(--card);border-radius:12px;padding:12px;text-align:center;box-shadow:var(--shadow);}
+.stat-v{font-size:22px;font-weight:800;}
+.stat-l{font-size:11px;color:var(--muted);font-weight:500;margin-top:1px;}
+.s-done .stat-v{color:var(--blue);}
+.s-ok .stat-v{color:var(--green);}
+.s-bad .stat-v{color:var(--red);}
+.s-pct .stat-v{color:var(--yellow);}
+
+/* PROGRESS */
+.prog-wrap{background:var(--border);border-radius:99px;height:6px;margin-bottom:16px;overflow:hidden;}
+.prog-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--blue),#7cb3ff);transition:width .4s ease;}
+
+/* QUESTION CARD */
+.q-card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:14px;animation:slideUp .25s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.q-label{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--blue);background:#eef2ff;padding:4px 10px;border-radius:99px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;}
+.q-text{font-size:16px;font-weight:600;line-height:1.6;color:var(--text);}
+
+/* DIAGRAM */
+.diagram-wrap{margin-top:14px;background:var(--light);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;}
+.diagram-title{font-size:11px;font-weight:700;color:var(--muted);padding:8px 14px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.5px;}
+.diagram-wrap canvas,.diagram-wrap svg{display:block;width:100%;max-height:180px;}
+
+/* OPTIONS */
+.options{display:flex;flex-direction:column;gap:9px;margin-bottom:14px;}
+.opt{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--border);border-radius:12px;padding:13px 16px;cursor:pointer;transition:all .15s;text-align:left;width:100%;font-family:'Onest',sans-serif;}
+.opt:hover:not(:disabled){border-color:var(--blue);background:#f0f4ff;}
+.opt-key{width:28px;height:28px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--blue);flex-shrink:0;border:1.5px solid var(--border);}
+.opt-text{font-size:14px;font-weight:500;color:var(--text);line-height:1.45;}
+.opt.correct{border-color:var(--green);background:#f0fdf4;}
+.opt.correct .opt-key{background:#dcfce7;color:var(--green);border-color:var(--green);}
+.opt.wrong{border-color:var(--red);background:#fef2f2;}
+.opt.wrong .opt-key{background:#fee2e2;color:var(--red);border-color:var(--red);}
+
+/* EXPLANATION */
+.explain-card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px;border-left:4px solid var(--blue);animation:slideUp .3s ease;display:none;}
+.explain-card.show{display:block;}
+.explain-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.explain-icon{width:28px;height:28px;border-radius:8px;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.explain-title{font-size:13px;font-weight:700;color:var(--blue);}
+.explain-body{font-size:14px;line-height:1.7;color:var(--text);}
+.explain-loading{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* CONTROLS */
+.controls{display:flex;gap:10px;margin-bottom:20px;}
+.btn-next{flex:1;padding:15px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-family:'Onest',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-next:hover:not(:disabled){background:var(--blue2);}
+.btn-next:disabled{opacity:.35;cursor:default;}
+.btn-shuffle{padding:15px 18px;background:var(--card);border:2px solid var(--border);border-radius:12px;font-family:'Onest',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;}
+.btn-shuffle:hover{border-color:var(--blue);color:var(--blue);}
+
+/* KEYBOARD HINT */
+.kb{text-align:center;font-size:11px;color:var(--muted);margin-bottom:16px;}
+.kb span{background:var(--card);padding:2px 7px;border-radius:5px;border:1px solid var(--border);margin:0 2px;font-weight:600;}
+
+/* RESULTS */
+.results{display:none;background:var(--card);border-radius:var(--radius);padding:40px 24px;text-align:center;box-shadow:var(--shadow);}
+.results.show{display:block;animation:slideUp .3s ease;}
+.r-emoji{font-size:64px;margin-bottom:12px;}
+.r-title{font-size:22px;font-weight:800;margin-bottom:6px;}
+.r-score{font-size:72px;font-weight:800;background:linear-gradient(135deg,var(--blue),#7cb3ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0;}
+.r-msg{color:var(--muted);font-size:14px;margin-bottom:28px;line-height:1.6;}
+.r-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn-r{padding:12px 24px;border:none;border-radius:12px;font-family:'Onest',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+.btn-r.primary{background:var(--blue);color:#fff;}
+.btn-r.secondary{background:var(--bg);color:var(--text);border:2px solid var(--border);}
+
+@media(max-width:480px){
+  .q-text{font-size:14px;}
+  .opt-text{font-size:13px;}
+  .stats{gap:6px;}
+  .stat-v{font-size:18px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo-icon">🌐</div>
+    <div>
+      <div class="logo-text">ПМ5 Quiz</div>
+      <div class="logo-sub">Сети и ОС · Т23-3В</div>
+    </div>
+    <div class="header-right">
+      <div class="q-counter" id="q-counter">1 / 360</div>
+      <div class="q-total" id="q-total-lbl">360 вопросов</div>
+    </div>
+  </div>
+
+  <div class="mode-bar">
+    <button class="mode-btn active" onclick="setMode('all')">Все 400</button>
+    <button class="mode-btn" onclick="setMode('wrong')">❌ Ошибки</button>
+    <button class="mode-btn" onclick="setMode('r20')">🎲 20</button>
+    <button class="mode-btn" onclick="setMode('r50')">🎲 50</button>
+    <button class="mode-btn" onclick="setMode('r100')">🎲 100</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat s-done"><div class="stat-v" id="s-tot">0</div><div class="stat-l">отвечено</div></div>
+    <div class="stat s-ok"><div class="stat-v" id="s-ok">0</div><div class="stat-l">верно</div></div>
+    <div class="stat s-bad"><div class="stat-v" id="s-bad">0</div><div class="stat-l">ошибок</div></div>
+    <div class="stat s-pct"><div class="stat-v" id="s-pct">—</div><div class="stat-l">точность</div></div>
+  </div>
+
+  <div class="prog-wrap"><div class="prog-bar" id="prog" style="width:0%"></div></div>
+
+  <div class="q-card" id="q-card">
+    <div class="q-label">🔢 <span id="q-num">Вопрос 1</span></div>
+    <div class="q-text" id="q-text">Загрузка...</div>
+    <div id="diagram-container"></div>
+  </div>
+
+  <div class="options" id="options"></div>
+
+  <div class="explain-card" id="explain-card">
+    <div class="explain-header">
+      <div class="explain-icon">💡</div>
+      <div class="explain-title">Объяснение от ИИ</div>
+    </div>
+    <div class="explain-body" id="explain-body">
+      <div class="explain-loading"><div class="spinner"></div> Думаю...</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-shuffle" onclick="startQuiz()">↺ Заново</button>
+    <button class="btn-next" id="btn-next" onclick="nextQ()" disabled>Следующий →</button>
+  </div>
+
+  <div class="kb">Клавиши: <span>A</span><span>B</span><span>C</span><span>D</span> — ответ · <span>Enter</span> — следующий</div>
+
+  <div class="results" id="results">
+    <div class="r-emoji" id="r-emoji">🎉</div>
+    <div class="r-title">Квиз завершён!</div>
+    <div class="r-score" id="r-score">0%</div>
+    <div class="r-msg" id="r-msg"></div>
+    <div class="r-btns">
+      <button class="btn-r primary" onclick="startQuiz()">↺ Заново</button>
+      <button class="btn-r secondary" onclick="setMode('wrong')">Повторить ошибки</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ALL = [{"q": "Устройством, выполняющим коммутацию кадров в локальной сети, является", "opts": ["маршрутизатор", "коммутатор", "модем", "повторитель"], "ans": "коммутатор"}, {"q": "Перед установкой сетевого оборудования в стойку в первую очередь учитывается", "opts": ["цвет корпуса устройства", "совместимость крепления и вентиляция", "длина названия модели", "версия офисных программ"], "ans": "совместимость крепления и вентиляция"}, {"q": "Назначение IP-адреса интерфейсу необходимо для", "opts": ["физического подключения питания", "удалённого сетевого доступа", "замены MAC-адреса", "включения режима trunk"], "ans": "удалённого сетевого доступа"}, {"q": "Переход в привилегированный режим Cisco IOS выполняется командой", "opts": ["start", "admin", "enable", "privilege"], "ans": "enable"}, {"q": "Переход в режим глобальной конфигурации выполняется командой", "opts": ["configure terminal", "show running-config", "write memory", "interface vlan"], "ans": "configure terminal"}, {"q": "Имя сетевого устройства задаётся командой", "opts": ["hostname", "banner motd", "service password-encryption", "ip domain-name"], "ans": "hostname"}, {"q": "Включение интерфейса после настройки выполняется командой", "opts": ["reload", "up interface", "no shutdown", "enable port"], "ans": "no shutdown"}, {"q": "Для просмотра текущей активной конфигурации используется команда", "opts": ["show startup-config", "show running-config", "show flash", "show users"], "ans": "show running-config"}, {"q": "Для сохранения активной конфигурации в энергонезависимую память применяется команда", "opts": ["copy running-config startup-config", "erase startup-config", "delete flash", "show startup-config"], "ans": "copy running-config startup-config"}, {"q": "Безопасное удалённое подключение к сетевому устройству обеспечивается протоколом", "opts": ["FTP", "Telnet", "SSH", "TFTP"], "ans": "SSH"}, {"q": "Основным преимуществом SSH является", "opts": ["работа без адресации", "передача данных в зашифрованном виде", "отсутствие авторизации", "настройка без командной строки"], "ans": "передача данных в зашифрованном виде"}, {"q": "Для локального первоначального доступа к коммутатору применяется", "opts": ["консольный порт", "uplink-порт", "SFP-модуль", "PoE-адаптер"], "ans": "консольный порт"}, {"q": "Логическое разделение одной физической сети на несколько сегментов обеспечивается технологией", "opts": ["NAT", "VLAN", "DNS", "NTP"], "ans": "VLAN"}, {"q": "Порт, передающий трафик нескольких VLAN, работает в режиме", "opts": ["access", "dynamic off", "trunk", "passive"], "ans": "trunk"}, {"q": "Для подключения пользовательского компьютера на коммутаторе обычно задаётся режим", "opts": ["trunk", "access", "routed", "monitor"], "ans": "access"}, {"q": "Команда для создания VLAN 20 на коммутаторе Cisco имеет вид", "opts": ["create vlan 20", "switch vlan 20", "vlan 20", "interface 20 vlan"], "ans": "vlan 20"}, {"q": "Для краткого просмотра состояния интерфейсов применяется команда", "opts": ["show ip interface brief", "show version", "show line", "show memory"], "ans": "show ip interface brief"}, {"q": "Проверка сетевой доступности удалённого узла выполняется командой", "opts": ["route", "netstat", "ping", "nslookup"], "ans": "ping"}, {"q": "Определение пути прохождения пакетов до удалённого узла выполняется командой", "opts": ["traceroute", "hostname", "write", "arp"], "ans": "traceroute"}, {"q": "Частным IPv4-адресом является", "opts": ["172.16.10.5", "8.8.8.8", "100.64.1.2", "193.168.1.1"], "ans": "172.16.10.5"}, {"q": "Диапазон 10.0.0.0/8 относится к адресам", "opts": ["публичным", "тестовым", "частным", "multicast"], "ans": "частным"}, {"q": "Служба автоматической выдачи IP-адресов клиентам называется", "opts": ["DHCP", "HTTP", "SNMP", "ICMP"], "ans": "DHCP"}, {"q": "Преобразование доменного имени в IP-адрес выполняет служба", "opts": ["DNS", "ARP", "FTP", "RDP"], "ans": "DNS"}, {"q": "Уникальный аппаратный адрес сетевого интерфейса называется", "opts": ["IP-адрес", "MAC-адрес", "DNS-имя", "ID VLAN"], "ans": "MAC-адрес"}, {"q": "На канальном уровне модели OSI в основном работает", "opts": ["маршрутизатор", "коммутатор", "сервер приложений", "браузер"], "ans": "коммутатор"}, {"q": "На сетевом уровне модели OSI выполняет функции", "opts": ["маршрутизатор", "концентратор", "патч-панель", "медиаконвертер"], "ans": "маршрутизатор"}, {"q": "Пароль для привилегированного режима на устройствах Cisco рекомендуется задавать командой", "opts": ["line password", "secret enable", "enable secret", "login admin"], "ans": "enable secret"}, {"q": "Команда enable secret предпочтительнее enable password, потому что", "opts": ["задаёт IP-адрес", "хранит пароль в более защищённой форме", "автоматически включает SSH", "обновляет IOS"], "ans": "хранит пароль в более защищённой форме"}, {"q": "Причиной состояния интерфейса administratively down является", "opts": ["аппаратная поломка", "отключение интерфейса в конфигурации", "отсутствие IP-адреса у хоста", "ошибка DNS"], "ans": "отключение интерфейса в конфигурации"}, {"q": "Для просмотра MAC-таблицы коммутатора используется команда", "opts": ["show interfaces trunk", "show vlan brief", "show mac address-table", "show cdp neighbors"], "ans": "show mac address-table"}, {"q": "Резервная копия конфигурации необходима для", "opts": ["ускорения передачи кадров", "восстановления настроек после сбоя", "включения дополнительного питания", "создания VLAN"], "ans": "восстановления настроек после сбоя"}, {"q": "В практике для копирования конфигурации на сервер часто применяется протокол", "opts": ["TFTP", "POP3", "SMTP", "LDAP"], "ans": "TFTP"}, {"q": "Встроенное программное обеспечение сетевого устройства называется", "opts": ["драйвером", "прошивкой", "патч-кордом", "конфигуратором"], "ans": "прошивкой"}, {"q": "Обновление прошивки выполняется с целью", "opts": ["повышения безопасности и исправления ошибок", "увеличения числа розеток", "изменения типа кабеля", "удаления VLAN"], "ans": "повышения безопасности и исправления ошибок"}, {"q": "Перед обновлением прошивки необходимо", "opts": ["выключить серверную вентиляцию", "проверить совместимость версии и сделать резервную копию", "удалить startup-config", "снять устройство со стойки без необходимости"], "ans": "проверить совместимость версии и сделать резервную копию"}, {"q": "Зелёный индикатор порта обычно указывает на", "opts": ["активное соединение", "критическую неисправность", "отсутствие линка", "блокировку питания"], "ans": "активное соединение"}, {"q": "Одной из частых причин отсутствия связи между узлами является", "opts": ["неправильная маска подсети", "яркость монитора", "неверное имя рабочей группы", "отсутствие наклейки на порту"], "ans": "неправильная маска подсети"}, {"q": "При первичной диагностике порта необходимо проверить", "opts": ["статус интерфейса и наличие линка", "язык операционной системы ПК", "положение стула оператора", "версию текстового редактора"], "ans": "статус интерфейса и наличие линка"}, {"q": "Технологическая политика организации определяет", "opts": ["только график отпусков", "стандарты настройки и эксплуатации сети", "модель телефонов сотрудников", "цвет патч-кордов по вкусу администратора"], "ans": "стандарты настройки и эксплуатации сети"}, {"q": "Документирование изменений конфигурации требуется для", "opts": ["быстрого сопровождения и контроля изменений", "замены маршрутизаторов на концентраторы", "увеличения длины сегмента Ethernet", "отключения удалённого доступа"], "ans": "быстрого сопровождения и контроля изменений"}, {"q": "К профилактическому обслуживанию относится", "opts": ["регулярная проверка журналов и интерфейсов", "ежедневное удаление конфигурации", "хаотичная смена адресации", "выключение оборудования в рабочее время"], "ans": "регулярная проверка журналов и интерфейсов"}, {"q": "Шлюз по умолчанию используется для", "opts": ["выхода трафика в другие сети", "хранения MAC-адресов", "замены DNS-сервера", "задания имени хоста"], "ans": "выхода трафика в другие сети"}, {"q": "Маска подсети определяет", "opts": ["модель коммутатора", "границы сети и узловой части адреса", "скорость консольного порта", "тип файловой системы"], "ans": "границы сети и узловой части адреса"}, {"q": "Для отображения сведений о версии IOS и устройстве применяется команда", "opts": ["show version", "show ip route", "show hosts", "show sessions"], "ans": "show version"}, {"q": "Команда banner motd используется для", "opts": ["настройки приветственного сообщения", "включения маршрутизации", "проверки таблицы MAC", "создания резервной копии"], "ans": "настройки приветственного сообщения"}, {"q": "Шифрование паролей в конфигурации включается командой", "opts": ["password encrypt all", "service password-encryption", "crypto passwords on", "secure line password"], "ans": "service password-encryption"}, {"q": "Для настройки параметров конкретного физического интерфейса выполняется переход в режим", "opts": ["line configuration", "interface configuration", "VLAN database", "boot configuration"], "ans": "interface configuration"}, {"q": "Команда description на интерфейсе предназначена для", "opts": ["документирования назначения порта", "изменения MAC-адреса", "удаления IP-настройки", "проверки таблицы маршрутов"], "ans": "документирования назначения порта"}, {"q": "Практика по администрированию сетевых устройств ориентирована на", "opts": ["формирование реальных навыков работы с оборудованием", "изучение только терминологии", "отказ от конфигурирования", "замену практики теорией"], "ans": "формирование реальных навыков работы с оборудованием"}, {"q": "Первичная настройка активного сетевого устройства обычно включает", "opts": ["присвоение имени, паролей и базовых сетевых параметров", "только очистку корпуса", "только монтаж в стойку без включения", "только замену блока питания"], "ans": "присвоение имени, паролей и базовых сетевых параметров"}, {"q": "Устройством, предназначенным для объединения сетей и выбора маршрута передачи пакетов, является", "opts": ["коммутатор", "маршрутизатор", "патч-панель", "медиаконвертер"], "ans": "маршрутизатор"}, {"q": "При монтаже оборудования в телекоммуникационный шкаф важным условием является", "opts": ["наличие свободного пространства для охлаждения", "случайное размещение устройств", "отсутствие маркировки кабелей", "открытая дверца шкафа на постоянной основе"], "ans": "наличие свободного пространства для охлаждения"}, {"q": "Назначение имени устройству упрощает", "opts": ["физическую замену блока питания", "идентификацию устройства в сети и документации", "обжим витой пары", "настройку принтера"], "ans": "идентификацию устройства в сети и документации"}, {"q": "Для перехода в режим настройки интерфейса FastEthernet 0/1 используется команда", "opts": ["vlan 0/1", "interface fastethernet 0/1", "line fastethernet 0/1", "port select 0/1"], "ans": "interface fastethernet 0/1"}, {"q": "IP-адрес на виртуальном интерфейсе коммутатора L2 обычно назначается для", "opts": ["удалённого управления устройством", "коммутации кадров между VLAN", "замены шлюза по умолчанию", "обжима кабеля"], "ans": "удалённого управления устройством"}, {"q": "Команда show startup-config отображает", "opts": ["активную конфигурацию в RAM", "сохранённую конфигурацию загрузки", "только IP-адреса VLAN", "журнал ошибок питания"], "ans": "сохранённую конфигурацию загрузки"}, {"q": "Возврат из режима конфигурации на один уровень вверх выполняется командой", "opts": ["quit all", "back", "exit", "stop"], "ans": "exit"}, {"q": "Немедленный переход из любого режима конфигурации в привилегированный режим выполняется комбинацией", "opts": ["Ctrl+Z", "Ctrl+S", "Alt+F4", "Shift+Esc"], "ans": "Ctrl+Z"}, {"q": "Команда copy startup-config running-config применяется для", "opts": ["подгрузки сохранённой конфигурации в текущую", "удаления файла конфигурации", "перезагрузки устройства", "копирования прошивки"], "ans": "подгрузки сохранённой конфигурации в текущую"}, {"q": "Для настройки пароля на консольной линии используется переход в режим", "opts": ["interface console 0", "line console 0", "login console 0", "access console 0"], "ans": "line console 0"}, {"q": "Для разрешения входа по паролю на консольной линии дополнительно применяется команда", "opts": ["auth enable", "login", "password-check", "connect"], "ans": "login"}, {"q": "Удалённый доступ через Telnet считается менее безопасным, потому что", "opts": ["использует только IPv6", "передаёт данные без шифрования", "не требует IP-адреса", "работает только по оптоволокну"], "ans": "передаёт данные без шифрования"}, {"q": "Команда ip domain-name нужна для", "opts": ["задания доменного имени устройства при настройке SSH", "смены VLAN по умолчанию", "удаления DNS-записей", "настройки DHCP relay"], "ans": "задания доменного имени устройства при настройке SSH"}, {"q": "Генерация криптографических ключей для SSH в Cisco выполняется командой", "opts": ["crypto key generate rsa", "ssh keys create", "ip ssh enable", "key rsa on"], "ans": "crypto key generate rsa"}, {"q": "VLAN по умолчанию на большинстве коммутаторов Cisco имеет номер", "opts": ["0", "1", "100", "999"], "ans": "1"}, {"q": "Для просмотра списка созданных VLAN используется команда", "opts": ["show vlan brief", "show interfaces status", "show ip protocols", "show trunk vlan"], "ans": "show vlan brief"}, {"q": "Назначение порта коммутатора в определённую VLAN выполняется командой", "opts": ["vlan member 10", "switchport access vlan 10", "ip vlan 10", "port vlan trunk 10"], "ans": "switchport access vlan 10"}, {"q": "Перевод интерфейса в режим access выполняется командой", "opts": ["switchport mode access", "mode vlan access", "access enable", "switch access on"], "ans": "switchport mode access"}, {"q": "Команда switchport mode trunk применяется для", "opts": ["отключения порта", "перевода порта в магистральный режим", "включения DHCP", "просмотра MAC-таблицы"], "ans": "перевода порта в магистральный режим"}, {"q": "Таблица ARP содержит соответствие между", "opts": ["DNS-именами и MAC-адресами", "IP-адресами и MAC-адресами", "VLAN и шлюзами", "интерфейсами и паролями"], "ans": "IP-адресами и MAC-адресами"}, {"q": "Просмотр ARP-таблицы на устройстве выполняется командой", "opts": ["show arp", "show ip route", "show flash", "show sessions"], "ans": "show arp"}, {"q": "Таблица маршрутизации устройства отображается командой", "opts": ["show protocols", "show ip route", "show route mac", "show gateway"], "ans": "show ip route"}, {"q": "Маршрут по умолчанию в таблице маршрутизации обозначается как", "opts": ["127.0.0.0/8", "255.255.255.255/32", "0.0.0.0/0", "169.254.0.0/16"], "ans": "0.0.0.0/0"}, {"q": "Частным диапазоном IPv4 также является", "opts": ["192.168.0.0/16", "192.0.0.0/8", "150.168.0.0/16", "224.0.0.0/4"], "ans": "192.168.0.0/16"}, {"q": "Адрес 169.254.x.x обычно появляется при", "opts": ["автоматической адресации без ответа DHCP", "ручной настройке шлюза", "корректной доменной авторизации", "работе NAT"], "ans": "автоматической адресации без ответа DHCP"}, {"q": "Протокол ICMP используется в том числе для", "opts": ["диагностики сетевой доступности", "передачи веб-страниц", "выдачи IP-адресов", "преобразования имён"], "ans": "диагностики сетевой доступности"}, {"q": "Протокол передачи данных с контролем доставки пакетов", "opts": ["UDP", "TCP", "ARP", "DNS"], "ans": "TCP"}, {"q": "Протокол транспортного уровня без установления соединения", "opts": ["ICMP", "GRE", "UDP", "FTP"], "ans": "UDP"}, {"q": "Быструю передачу данных без установления соединения обеспечивает протокол", "opts": ["TCP", "UDP", "SSH", "HTTPS"], "ans": "UDP"}, {"q": "Стандартный порт службы SSH имеет номер", "opts": ["21", "22", "23", "25"], "ans": "22"}, {"q": "Стандартный порт Telnet имеет номер", "opts": ["20", "22", "23", "53"], "ans": "23"}, {"q": "Стандартный порт DNS чаще всего соответствует значению", "opts": ["53", "67", "110", "443"], "ans": "53"}, {"q": "Стандартный порт DHCP-сервера соответствует номеру", "opts": ["25", "53", "67", "161"], "ans": "67"}, {"q": "Протокол SNMP применяется для", "opts": ["мониторинга и управления сетевыми устройствами", "обжима витой пары", "построения VLAN вручную", "передачи видеопотока"], "ans": "мониторинга и управления сетевыми устройствами"}, {"q": "Хранение журналов сетевых событий на внешнем сервере обеспечивается службой", "opts": ["Syslog", "Telnet", "TDR", "ARP"], "ans": "Syslog"}, {"q": "Автоматическая синхронизация времени на сетевых устройствах выполняется с помощью", "opts": ["NTP", "FTP", "HTTP", "LDAP"], "ans": "NTP"}, {"q": "Неправильная настройка времени на сетевом оборудовании затрудняет", "opts": ["анализ журналов событий", "физический монтаж в шкаф", "маркировку кабелей", "выбор модели патч-корда"], "ans": "анализ журналов событий"}, {"q": "Для удаления ошибочной команды в Cisco IOS используется форма", "opts": ["delete", "no", "clear line", "erase one"], "ans": "no"}, {"q": "Команда reload предназначена для", "opts": ["перезагрузки устройства", "удаления VLAN", "создания резервной копии", "проверки IP-адреса"], "ans": "перезагрузки устройства"}, {"q": "Очистка сохранённой конфигурации перед повторной настройкой выполняется командой", "opts": ["erase startup-config", "delete running-config", "clear interfaces", "format flash"], "ans": "erase startup-config"}, {"q": "Перезагрузка без сохранения изменений приводит к", "opts": ["применению только startup-config", "сохранению running-config автоматически", "удалению IOS", "сбросу MAC-адресов производителя"], "ans": "применению только startup-config"}, {"q": "Физическая маркировка кабелей и портов необходима для", "opts": ["ускорения электрического сигнала", "удобства обслуживания и снижения ошибок", "изменения схемы адресации", "замены коммутатора на маршрутизатор"], "ans": "удобства обслуживания и снижения ошибок"}, {"q": "При выборе места установки сетевого устройства следует учитывать", "opts": ["температуру, вентиляцию и доступ для обслуживания", "только высоту стула оператора", "только цвет стен", "только расположение окон"], "ans": "температуру, вентиляцию и доступ для обслуживания"}, {"q": "Проверка целостности патч-корда относится к этапу", "opts": ["базовой физической диагностики", "DNS-разрешения", "настройки таблицы маршрутов", "генерации RSA-ключей"], "ans": "базовой физической диагностики"}, {"q": "Для первичной настройки оборудования обычно требуется", "opts": ["подключение по консоли и терминальная программа", "только браузер без соединения", "только принтер", "только телефонный аппарат"], "ans": "подключение по консоли и терминальная программа"}, {"q": "Одной из задач администратора при вводе оборудования в эксплуатацию является", "opts": ["проверка соответствия конфигурации политике организации", "изменение серийного номера", "отключение журналирования", "удаление документации"], "ans": "проверка соответствия конфигурации политике организации"}, {"q": "К эксплуатационной документации относится", "opts": ["схема подключения и таблица адресации", "рекламный буклет производителя", "только кассовый чек", "личная переписка пользователя"], "ans": "схема подключения и таблица адресации"}, {"q": "Поддержка работоспособности сети включает", "opts": ["регулярный мониторинг и устранение неисправностей", "только начальную установку оборудования", "только закупку мебели", "только регистрацию пользователей"], "ans": "регулярный мониторинг и устранение неисправностей"}, {"q": "Правильная первичная настройка снижает риск", "opts": ["ошибок в дальнейшей эксплуатации", "появления кабель-каналов", "использования IP-адресов", "установки патч-панелей"], "ans": "ошибок в дальнейшей эксплуатации"}, {"q": "Практическая подготовка по ПМ5 предполагает", "opts": ["выполнение реальных операций по установке и настройке сетевых устройств", "исключительно переписывание теории", "только просмотр презентаций", "отказ от работы с оборудованием"], "ans": "выполнение реальных операций по установке и настройке сетевых устройств"}, {"q": "Сетевым устройством, соединяющим сегменты одной локальной сети на физическом уровне, является", "opts": ["повторитель", "маршрутизатор", "сервер", "межсетевой экран"], "ans": "повторитель"}, {"q": "Патч-панель относится к категории оборудования", "opts": ["активного", "пассивного", "маршрутизирующего", "программного"], "ans": "пассивного"}, {"q": "Подключение сетевого оборудования к источнику бесперебойного питания повышает", "opts": ["устойчивость к кратковременным сбоям электроснабжения", "количество VLAN", "скорость DNS", "число MAC-адресов"], "ans": "устойчивость к кратковременным сбоям электроснабжения"}, {"q": "Последовательный порядок первоначального ввода устройства в работу включает", "opts": ["монтаж, подключение, базовую настройку, проверку", "удаление конфигурации, замену стойки, перезагрузку", "только обновление обоев терминала", "только настройку DNS"], "ans": "монтаж, подключение, базовую настройку, проверку"}, {"q": "Назначение пароля на линии VTY требуется для", "opts": ["удалённого доступа к устройству", "изменения MAC-адреса", "маркировки кабелей", "настройки PoE"], "ans": "удалённого доступа к устройству"}, {"q": "Переход в режим настройки VTY-линий выполняется командой", "opts": ["line vty 0 4", "interface vty 0/4", "access vty 1 5", "login vty terminal"], "ans": "line vty 0 4"}, {"q": "Ограничение удалённого доступа только по SSH выполняется командой", "opts": ["transport input ssh", "login local ssh", "secure remote only", "ssh terminal enable"], "ans": "transport input ssh"}, {"q": "Использование локальной базы пользователей для входа на устройство включается командой", "opts": ["local auth enable", "login local", "username database on", "access local user"], "ans": "login local"}, {"q": "Создание локального пользователя в Cisco выполняется командой вида", "opts": ["user admin add", "username admin secret 12345", "login admin create", "local-user admin password 12345"], "ans": "username admin secret 12345"}, {"q": "Для просмотра соседних Cisco-устройств напрямую подключённых к данному устройству используется команда", "opts": ["show cdp neighbors", "show ip neighbors", "show vlan neighbors", "show lldp local"], "ans": "show cdp neighbors"}, {"q": "Протокол CDP предназначен для", "opts": ["обнаружения соседних устройств Cisco", "выдачи IP-адресов", "шифрования трафика", "маршрутизации между VLAN"], "ans": "обнаружения соседних устройств Cisco"}, {"q": "Универсальным протоколом обнаружения соседей разных производителей является", "opts": ["LLDP", "ARP", "VTP", "MPLS"], "ans": "LLDP"}, {"q": "Команда show interfaces позволяет получить", "opts": ["подробную информацию о состоянии интерфейсов", "только таблицу DNS", "только список паролей", "только список пользователей"], "ans": "подробную информацию о состоянии интерфейсов"}, {"q": "Поле line protocol is down указывает на", "opts": ["проблему логического состояния интерфейса", "перегрев стойки", "корректную работу SSH", "наличие маршрута по умолчанию"], "ans": "проблему логического состояния интерфейса"}, {"q": "Автоматическое согласование скорости и дуплекса интерфейса называется", "opts": ["autosensing", "autonegotiation", "autoloading", "autobridging"], "ans": "autonegotiation"}, {"q": "Несовпадение настроек duplex на двух концах соединения может привести к", "opts": ["коллизиям и снижению производительности", "смене MAC-адреса", "отключению DHCP на сервере", "удалению VLAN"], "ans": "коллизиям и снижению производительности"}, {"q": "Полный дуплекс означает", "opts": ["одновременную передачу и приём данных", "работу только на передачу", "работу только на приём", "полное отключение канала"], "ans": "одновременную передачу и приём данных"}, {"q": "Скорость интерфейса на некоторых устройствах задаётся командой", "opts": ["bandwidth set", "speed", "media rate", "interface-rate"], "ans": "speed"}, {"q": "Режим дуплекса интерфейса задаётся командой", "opts": ["duplex", "full-link", "line-mode", "media-duplex"], "ans": "duplex"}, {"q": "Принадлежность порта определённой VLAN можно проверить командой", "opts": ["show vlan brief", "show ip ssh", "show clock", "show processes"], "ans": "show vlan brief"}, {"q": "Для отображения магистральных портов коммутатора используется команда", "opts": ["show interfaces trunk", "show interfaces vlan", "show ports route", "show switch links"], "ans": "show interfaces trunk"}, {"q": "Номер VLAN управления на коммутаторе может отличаться от", "opts": ["номера физического порта", "серийного номера", "версии IOS", "MAC-адреса блока питания"], "ans": "номера физического порта"}, {"q": "Логический интерфейс управления коммутатором второго уровня обычно создаётся как", "opts": ["loopback", "interface vlan", "interface trunk", "line vty"], "ans": "interface vlan"}, {"q": "Назначение IP-адреса на интерфейсе VLAN выполняется командой", "opts": ["ip address", "set ip host", "address ip local", "host ip assign"], "ans": "ip address"}, {"q": "Активация интерфейса VLAN после настройки также требует команды", "opts": ["no shutdown", "enable vlan", "ip up", "switch on"], "ans": "no shutdown"}, {"q": "Сетевой кабель витая пара чаще всего оканчивается разъёмом", "opts": ["BNC", "RJ-45", "SC", "DB-9"], "ans": "RJ-45"}, {"q": "Для передачи данных по оптоволокну на коммутаторе обычно используется", "opts": ["RJ-11", "SFP-модуль", "PS/2-порт", "VGA-разъём"], "ans": "SFP-модуль"}, {"q": "Поддержка питания устройств через Ethernet обозначается как", "opts": ["PPPoE", "PoE", "PPTP", "PAE"], "ans": "PoE"}, {"q": "Устройством, которое может получать питание по технологии PoE, является", "opts": ["IP-телефон", "патч-панель", "кабель-канал", "стойка"], "ans": "IP-телефон"}, {"q": "Команда show power inline используется для", "opts": ["просмотра параметров PoE на портах", "удаления питания устройства", "отображения таблицы маршрутов", "смены доменного имени"], "ans": "просмотра параметров PoE на портах"}, {"q": "Таблица коммутации на коммутаторе формируется на основе", "opts": ["исходных MAC-адресов кадров", "только IP-адресов", "только DNS-запросов", "серийных номеров устройств"], "ans": "исходных MAC-адресов кадров"}, {"q": "Пересылка широковещательных кадров коммутатором внутри VLAN выполняется на", "opts": ["все порты этой VLAN, кроме входного", "только на trunk-порты", "только на маршрутизатор", "один случайный порт"], "ans": "все порты этой VLAN, кроме входного"}, {"q": "Широковещательный домен ограничивается", "opts": ["границами VLAN", "длиной патч-корда", "типом корпуса устройства", "названием коммутатора"], "ans": "границами VLAN"}, {"q": "Для связи между различными VLAN требуется", "opts": ["маршрутизация", "повторитель", "обжим другого кабеля", "отключение MAC-таблицы"], "ans": "маршрутизация"}, {"q": "Маршрутизация между VLAN может выполняться", "opts": ["маршрутизатором или L3-коммутатором", "патч-панелью", "пассивным концентратором", "только UPS"], "ans": "маршрутизатором или L3-коммутатором"}, {"q": "Команда show ip default-gateway на некоторых устройствах используется для", "opts": ["проверки шлюза по умолчанию", "назначения VLAN", "сброса консольного доступа", "просмотра RSA-ключей"], "ans": "проверки шлюза по умолчанию"}, {"q": "При отсутствии корректного шлюза по умолчанию устройство не сможет", "opts": ["обмениваться данными с другими подсетями", "включаться от питания", "отображать MAC-адрес", "хранить конфигурацию"], "ans": "обмениваться данными с другими подсетями"}, {"q": "Локальная петля в кабельной системе может вызывать", "opts": ["сетевой шторм и нестабильную работу", "ускорение DNS", "увеличение числа VLAN", "рост доступной памяти flash"], "ans": "сетевой шторм и нестабильную работу"}, {"q": "Для предотвращения проблем от петель в коммутируемых сетях применяется протокол", "opts": ["STP", "FTP", "SNMP", "NTP"], "ans": "STP"}, {"q": "Основная задача STP состоит в", "opts": ["предотвращении петель на уровне 2", "раздаче IP-адресов", "удалении паролей", "настройке часов"], "ans": "предотвращении петель на уровне 2"}, {"q": "Просмотр сведений о spanning-tree выполняется командой", "opts": ["show spanning-tree", "show bridge route", "show loop status", "show layer2 tree"], "ans": "show spanning-tree"}, {"q": "Ведение журнала изменений конфигурации полезно для", "opts": ["анализа причин сбоев и аудита", "уменьшения длины кабеля", "изменения стандартов OSI", "замены IP на MAC"], "ans": "анализа причин сбоев и аудита"}, {"q": "Одним из требований информационной безопасности является", "opts": ["ограничение несанкционированного доступа к сетевым устройствам", "отключение всех паролей", "публикация конфигураций в открытом доступе", "использование одинаковых паролей везде без смены"], "ans": "ограничение несанкционированного доступа к сетевым устройствам"}, {"q": "Использование сложных паролей на сетевых устройствах направлено на", "opts": ["повышение уровня защиты", "увеличение пропускной способности", "расширение адресного пространства", "смену типа кабеля"], "ans": "повышение уровня защиты"}, {"q": "Резервирование конфигураций желательно хранить", "opts": ["на внешнем защищённом носителе или сервере", "только в оперативной памяти устройства", "только в заметках на бумаге без копий", "исключительно на рабочем столе пользователя"], "ans": "на внешнем защищённом носителе или сервере"}, {"q": "Первичная проверка после настройки обычно включает", "opts": ["тестирование доступа, интерфейсов и адресации", "только выключение питания", "только очистку корпуса", "только печать отчёта"], "ans": "тестирование доступа, интерфейсов и адресации"}, {"q": "Соответствие сетевой настройки политике организации означает", "opts": ["соблюдение утверждённых стандартов адресации, доступа и документирования", "выбор случайных параметров администратором", "использование любых VLAN без схемы", "отказ от резервного копирования"], "ans": "соблюдение утверждённых стандартов адресации, доступа и документирования"}, {"q": "Практика настройки сетевых ОС способствует", "opts": ["формированию устойчивых профессиональных навыков", "замене всех лабораторных работ чтением", "отказу от CLI", "снижению значения документации"], "ans": "формированию устойчивых профессиональных навыков"}, {"q": "Поддержка сетевого оборудования включает", "opts": ["обновление, мониторинг, резервирование и устранение неисправностей", "только ввод в эксплуатацию", "только установку в шкаф", "только назначение имени устройству"], "ans": "обновление, мониторинг, резервирование и устранение неисправностей"}, {"q": "Одним из итогов качественной первичной настройки является", "opts": ["стабильная и безопасная работа устройства в сети", "обязательное удаление всех сервисов", "отключение журналов", "отказ от удалённого администрирования"], "ans": "стабильная и безопасная работа устройства в сети"}, {"q": "Адрес 255.255.255.0 соответствует маске подсети", "opts": ["/8", "/16", "/24", "/30"], "ans": "/24"}, {"q": "Адрес сети при IP 192.168.1.34 и маске 255.255.255.0 имеет вид", "opts": ["192.168.1.0", "192.168.1.255", "192.168.0.34", "255.255.255.0"], "ans": "192.168.1.0"}, {"q": "Широковещательный адрес для сети 192.168.1.0/24 имеет вид", "opts": ["192.168.1.1", "192.168.1.254", "192.168.1.255", "192.168.0.255"], "ans": "192.168.1.255"}, {"q": "Маска 255.255.255.128 соответствует префиксу", "opts": ["/23", "/24", "/25", "/26"], "ans": "/25"}, {"q": "В подсети /30 количество пригодных для хостов адресов равно", "opts": ["2", "4", "6", "14"], "ans": "2"}, {"q": "Маска 255.255.255.252 обычно применяется для", "opts": ["каналов точка-точка", "пользовательских VLAN на 200 узлов", "DNS-серверов только в больших сетях", "multicast-трафика"], "ans": "каналов точка-точка"}, {"q": "Адрес 127.0.0.1 используется как", "opts": ["адрес шлюза", "loopback-адрес", "broadcast-адрес", "адрес DHCP-сервера"], "ans": "loopback-адрес"}, {"q": "Диапазон 224.0.0.0/4 относится к адресам", "opts": ["частным", "multicast", "loopback", "link-local"], "ans": "multicast"}, {"q": "Префикс /24 означает, что количество бит сети равно", "opts": ["8", "16", "24", "32"], "ans": "24"}, {"q": "При одинаковых IP-адресах у двух узлов в одной сети возникает", "opts": ["конфликт адресов", "корректное резервирование", "увеличение скорости связи", "автоматическая маршрутизация"], "ans": "конфликт адресов"}, {"q": "Для проверки локальных IP-настроек на ПК под Windows применяется команда", "opts": ["ifconfig", "ipconfig", "route print all", "hostname set"], "ans": "ipconfig"}, {"q": "Для просмотра полной IP-конфигурации Windows используется команда", "opts": ["ipconfig /all", "show ip config", "net setup", "get address"], "ans": "ipconfig /all"}, {"q": "В Linux для просмотра параметров интерфейсов может использоваться команда", "opts": ["ip addr", "dir ip", "hostconfig", "show net all"], "ans": "ip addr"}, {"q": "Проверка таблицы маршрутов в Windows выполняется командой", "opts": ["route print", "ping route", "show gateway", "ipconfig /route"], "ans": "route print"}, {"q": "Разрешение имени узла через DNS можно проверить командой", "opts": ["nslookup", "arp -a", "net user", "mkdir"], "ans": "nslookup"}, {"q": "Запись о соответствии IP и MAC на рабочей станции Windows можно посмотреть командой", "opts": ["arp -a", "ipconfig /mac", "route add", "ping -m"], "ans": "arp -a"}, {"q": "Автоматическая выдача параметров IP-клиенту может включать", "opts": ["адрес, маску, шлюз и DNS", "только имя пользователя", "только MAC-адрес коммутатора", "только номер порта"], "ans": "адрес, маску, шлюз и DNS"}, {"q": "Команда освобождения DHCP-адреса в Windows имеет вид", "opts": ["ipconfig /release", "ipconfig /drop", "release ip now", "dhcp clear"], "ans": "ipconfig /release"}, {"q": "Команда повторного запроса IP-адреса у DHCP в Windows имеет вид", "opts": ["ipconfig /renew", "net renew ip", "address /new", "dhcp request"], "ans": "ipconfig /renew"}, {"q": "Неправильно настроенный DNS чаще всего проявляется как", "opts": ["недоступность сайтов по имени при доступности по IP", "выключение коммутатора", "исчезновение MAC-таблицы", "неисправность патч-панели"], "ans": "недоступность сайтов по имени при доступности по IP"}, {"q": "Операционная система сетевого устройства предоставляет", "opts": ["интерфейс для настройки, управления и диагностики", "только файловое хранилище пользователей", "только офисные приложения", "только веб-браузер"], "ans": "интерфейс для настройки, управления и диагностики"}, {"q": "CLI в сетевом администрировании означает", "opts": ["интерфейс командной строки", "кабельную линию интернета", "коммутируемый логический интерфейс", "центр локальной интеграции"], "ans": "интерфейс командной строки"}, {"q": "Режим EXEC пользователя в Cisco обозначается приглашением", "opts": ["#", ">", "$", "%"], "ans": ">"}, {"q": "Привилегированный режим EXEC в Cisco обозначается приглашением", "opts": [">", "%", "#", "&"], "ans": "#"}, {"q": "Контекстная справка в Cisco IOS вызывается символом", "opts": ["!", "?", "/"], "ans": "?"}, {"q": "Автодополнение команды в Cisco обычно выполняется клавишей", "opts": ["Enter", "Tab", "Shift", "Backspace"], "ans": "Tab"}, {"q": "Просмотр предыдущих команд в CLI обычно выполняется клавишей", "opts": ["стрелка вверх", "F12", "пробел", "Insert"], "ans": "стрелка вверх"}, {"q": "Файл startup-config хранится обычно в", "opts": ["RAM", "NVRAM", "буфере обмена", "ARP-таблице"], "ans": "NVRAM"}, {"q": "Файл running-config находится в", "opts": ["RAM", "ROM", "BIOS", "DNS-кэше"], "ans": "RAM"}, {"q": "Образ операционной системы Cisco обычно хранится в", "opts": ["flash-памяти", "таблице маршрутизации", "NTP-сервере", "line vty"], "ans": "flash-памяти"}, {"q": "Просмотр содержимого flash-памяти выполняется командой", "opts": ["dir flash:", "show flash all files", "open flash", "list memory flash"], "ans": "dir flash:"}, {"q": "Загрузочные параметры устройства можно просмотреть командой", "opts": ["show boot", "show power", "show cdp", "show aliases"], "ans": "show boot"}, {"q": "ROM в сетевом устройстве содержит", "opts": ["базовые средства начальной загрузки и диагностики", "таблицу DHCP-клиентов", "только VLAN", "только учётные записи пользователей"], "ans": "базовые средства начальной загрузки и диагностики"}, {"q": "Сброс устройства к заводским настройкам требует", "opts": ["осторожности из-за потери конфигурации", "только смены обоев терминала", "замены патч-кордов", "обновления DNS"], "ans": "осторожности из-за потери конфигурации"}, {"q": "Конфигурация интерфейса коммутатора должна соответствовать", "opts": ["назначению порта и политике безопасности", "случайному выбору пользователя", "цвету кабеля", "версии офисного пакета"], "ans": "назначению порта и политике безопасности"}, {"q": "Неиспользуемые порты коммутатора рекомендуется", "opts": ["отключать в целях безопасности", "переводить в trunk без причины", "оставлять без контроля", "назначать всем пользователям"], "ans": "отключать в целях безопасности"}, {"q": "Отключение неиспользуемого интерфейса выполняется командой", "opts": ["shutdown", "disable all", "close port", "no enable"], "ans": "shutdown"}, {"q": "Размещение неиспользуемых портов в отдельной VLAN повышает", "opts": ["уровень сетевой безопасности", "температуру устройства", "число ARP-записей", "длину кабеля"], "ans": "уровень сетевой безопасности"}, {"q": "Базовая политика безопасности сетевого устройства предполагает", "opts": ["использование паролей, SSH и ограничение доступа", "включение Telnet без пароля", "отключение журналов", "хранение конфигураций без резервирования"], "ans": "использование паролей, SSH и ограничение доступа"}, {"q": "Команда show ip ssh позволяет проверить", "opts": ["параметры работы SSH на устройстве", "список VLAN", "состояние питания PoE", "таблицу ARP"], "ans": "параметры работы SSH на устройстве"}, {"q": "Для ограничения физического доступа к оборудованию применяется", "opts": ["размещение в закрываемом шкафу или серверной", "публикация адресов и паролей", "снятие боковых стенок стойки", "постоянное хранение ключей на двери"], "ans": "размещение в закрываемом шкафу или серверной"}, {"q": "Системный баннер на устройстве может использоваться для", "opts": ["предупреждения о контролируемом доступе", "увеличения пропускной способности", "настройки ARP", "определения MAC-адресов"], "ans": "предупреждения о контролируемом доступе"}, {"q": "Регулярная проверка свободного места во flash важна для", "opts": ["обновления прошивки и хранения файлов конфигурации", "настройки дуплекса", "выдачи DHCP-адресов клиентам", "измерения длины линии"], "ans": "обновления прошивки и хранения файлов конфигурации"}, {"q": "Наличие резервного канала связи в инфраструктуре повышает", "opts": ["отказоустойчивость", "число доменных имён", "количество пользователей в VLAN 1", "размер MAC-адреса"], "ans": "отказоустойчивость"}, {"q": "Одним из признаков корректной первичной настройки является", "opts": ["успешный удалённый вход по защищённому протоколу", "невозможность сохранить конфигурацию", "постоянное состояние down у всех портов", "отсутствие IP-адреса управления"], "ans": "успешный удалённый вход по защищённому протоколу"}, {"q": "План адресации в организации нужен для", "opts": ["системного распределения IP-адресов и предотвращения конфликтов", "выбора модели клавиатуры", "маркировки мебели", "настройки только принтеров"], "ans": "системного распределения IP-адресов и предотвращения конфликтов"}, {"q": "При сопровождении сети важно регулярно анализировать", "opts": ["журналы событий и состояние интерфейсов", "только цвет индикаторов без командной проверки", "только внешний вид шкафа", "только название устройства"], "ans": "журналы событий и состояние интерфейсов"}, {"q": "Ошибки конфигурации удобнее устранять при наличии", "opts": ["актуальной схемы сети и резервных копий", "только устных пояснений", "отключённого журналирования", "отсутствия описаний портов"], "ans": "актуальной схемы сети и резервных копий"}, {"q": "Практическая работа с сетевыми ОС развивает", "opts": ["навыки уверенного конфигурирования и диагностики", "только умение переписывать определения", "только расчёт стоимости оборудования", "только навыки печати текста"], "ans": "навыки уверенного конфигурирования и диагностики"}, {"q": "Комплексная поддержка сетевого оборудования направлена на", "opts": ["сохранение стабильности, безопасности и доступности сети", "уменьшение числа настроек без причины", "отказ от мониторинга", "исключение документации из работы"], "ans": "сохранение стабильности, безопасности и доступности сети"}, {"q": "Назначение статического IP-адреса на сетевом устройстве целесообразно для", "opts": ["стабильного удалённого администрирования", "случайной смены адреса при каждой загрузке", "отключения маршрутизации", "уменьшения MAC-таблицы"], "ans": "стабильного удалённого администрирования"}, {"q": "DHCP удобен в пользовательских сегментах сети, потому что", "opts": ["автоматизирует выдачу сетевых параметров", "заменяет физический коммутатор", "шифрует консольный доступ", "устраняет необходимость в DNS"], "ans": "автоматизирует выдачу сетевых параметров"}, {"q": "Статическая маршрутизация отличается тем, что маршруты", "opts": ["задаются администратором вручную", "всегда строятся автоматически", "формируются только по MAC-адресам", "зависят только от DHCP"], "ans": "задаются администратором вручную"}, {"q": "Динамическая маршрутизация удобна в более сложных сетях благодаря", "opts": ["автоматическому обмену маршрутной информацией", "отключению всех протоколов", "уменьшению числа интерфейсов", "замене VLAN"], "ans": "автоматическому обмену маршрутной информацией"}, {"q": "NAT используется для", "opts": ["преобразования сетевых адресов", "синхронизации времени", "шифрования SSH", "построения таблицы MAC"], "ans": "преобразования сетевых адресов"}, {"q": "Преобразование множества внутренних адресов в один внешний часто реализуется с помощью", "opts": ["PAT", "ARP", "STP", "VTP"], "ans": "PAT"}, {"q": "Access Control List применяется для", "opts": ["фильтрации сетевого трафика", "измерения длины кабеля", "генерации RSA-ключей", "монтажа оборудования в стойку"], "ans": "фильтрации сетевого трафика"}, {"q": "Стандартная ACL в Cisco фильтрует трафик в основном по", "opts": ["адресу источника", "адресу назначения и порту", "номеру VLAN", "MAC-адресу коммутатора"], "ans": "адресу источника"}, {"q": "Расширенная ACL позволяет учитывать", "opts": ["адреса, протоколы и порты", "только серийный номер устройства", "только название интерфейса", "только цвет индикации"], "ans": "адреса, протоколы и порты"}, {"q": "Размещение ACL ближе к источнику трафика обычно рекомендуется для", "opts": ["более ранней фильтрации нежелательных пакетов", "увеличения длины кадра", "отключения DNS", "ускорения работы вентилятора"], "ans": "более ранней фильтрации нежелательных пакетов"}, {"q": "Команда show access-lists используется для", "opts": ["просмотра настроенных списков доступа", "удаления SSH", "проверки версии IOS", "просмотра температуры устройства"], "ans": "просмотра настроенных списков доступа"}, {"q": "Резервирование канала или устройства необходимо для", "opts": ["повышения отказоустойчивости сети", "уменьшения числа IP-адресов", "отключения журналирования", "отказа от диагностики"], "ans": "повышения отказоустойчивости сети"}, {"q": "Отказоустойчивость сети означает", "opts": ["сохранение работоспособности при сбоях отдельных компонентов", "полное отсутствие настроек", "работу только одного устройства", "использование только VLAN 1"], "ans": "сохранение работоспособности при сбоях отдельных компонентов"}, {"q": "Мониторинг загрузки интерфейсов помогает", "opts": ["выявлять перегрузки и аномалии трафика", "изменять серийные номера", "отключать маски подсети", "удалять MAC-адреса производителей"], "ans": "выявлять перегрузки и аномалии трафика"}, {"q": "Анализ счётчиков ошибок интерфейса позволяет обнаружить", "opts": ["физические и канальные проблемы соединения", "только ошибки пользователей в документации", "только проблемы принтера", "только неисправности монитора"], "ans": "физические и канальные проблемы соединения"}, {"q": "Команда show interfaces counters errors на поддерживаемых платформах используется для", "opts": ["просмотра ошибок интерфейсов", "создания VLAN", "настройки SSH", "удаления startup-config"], "ans": "просмотра ошибок интерфейсов"}, {"q": "Большое количество CRC-ошибок на интерфейсе может указывать на", "opts": ["проблемы кабеля или помехи", "корректную работу DNS", "избыточное число пользователей в домене", "правильную настройку шлюза"], "ans": "проблемы кабеля или помехи"}, {"q": "Наличие входящих и исходящих packet drops может свидетельствовать о", "opts": ["перегрузке интерфейса или очередей", "исправной работе без замечаний", "необходимости сменить имя устройства", "ошибке в часовом поясе"], "ans": "перегрузке интерфейса или очередей"}, {"q": "Регулярный просмотр системных логов нужен для", "opts": ["раннего выявления сбоев и предупреждений", "отключения протокола ICMP", "изменения маски на всех узлах", "создания новых учётных записей пользователей ПК"], "ans": "раннего выявления сбоев и предупреждений"}, {"q": "Команда show logging отображает", "opts": ["журнал событий устройства", "MAC-таблицу", "список VLAN", "конфигурацию BIOS компьютера"], "ans": "журнал событий устройства"}, {"q": "Централизованный мониторинг сети особенно полезен при", "opts": ["большом количестве устройств и распределённой инфраструктуре", "полном отсутствии сети", "работе только одного кабеля", "отсутствии адресации"], "ans": "большом количестве устройств и распределённой инфраструктуре"}, {"q": "Документирование топологии сети позволяет", "opts": ["быстрее локализовать неисправности", "исключить необходимость в IP-адресах", "отменить резервное копирование", "не выполнять маркировку"], "ans": "быстрее локализовать неисправности"}, {"q": "Таблица адресации в документации обычно содержит", "opts": ["IP-адреса, маски, шлюзы и назначение узлов", "только фамилии сотрудников", "только стоимость оборудования", "только номера кабинетов"], "ans": "IP-адреса, маски, шлюзы и назначение узлов"}, {"q": "Указание описания на портах упрощает", "opts": ["сопровождение и поиск нужного подключения", "выдачу DHCP-адресов", "работу вентилятора", "генерацию ключей SSH"], "ans": "сопровождение и поиск нужного подключения"}, {"q": "Плановое техническое обслуживание сети помогает", "opts": ["предупреждать отказы и снижать простой", "полностью отказаться от диагностики", "отключить резервирование", "исключить необходимость в политике безопасности"], "ans": "предупреждать отказы и снижать простой"}, {"q": "Очистка от пыли и контроль температуры оборудования необходимы для", "opts": ["поддержания надёжной работы", "увеличения числа VLAN", "изменения типа IP-адреса", "отключения PoE"], "ans": "поддержания надёжной работы"}, {"q": "Перегрев сетевого оборудования может привести к", "opts": ["нестабильной работе и сбоям", "автоматическому расширению подсети", "увеличению числа MAC-адресов", "улучшению качества сигнала"], "ans": "нестабильной работе и сбоям"}, {"q": "При замене устройства в сети важно в первую очередь", "opts": ["проверить совместимость конфигурации и параметров подключения", "изменить всю адресацию организации без причины", "удалить резервные копии", "отказаться от тестирования"], "ans": "проверить совместимость конфигурации и параметров подключения"}, {"q": "Ввод нового устройства в эксплуатацию завершается", "opts": ["тестированием доступности и фиксацией настроек в документации", "только включением питания", "только распаковкой", "только присвоением имени без проверки"], "ans": "тестированием доступности и фиксацией настроек в документации"}, {"q": "Тестирование после конфигурирования обычно включает", "opts": ["проверку линка, адресации, доступа и служб", "только осмотр упаковки", "только смену пароля пользователя ПК", "только очистку журнала"], "ans": "проверку линка, адресации, доступа и служб"}, {"q": "Проверка доступности шлюза с рабочей станции позволяет", "opts": ["подтвердить связь в пределах локальной сети и выход к маршрутизатору", "изменить VLAN автоматически", "определить модель кабеля", "обновить IOS"], "ans": "подтвердить связь в пределах локальной сети и выход к маршрутизатору"}, {"q": "Проверка связи с удалённым узлом по имени подтверждает работу", "opts": ["маршрутизации и DNS", "только MAC-адресации", "только консольного порта", "только питания устройства"], "ans": "маршрутизации и DNS"}, {"q": "Несоответствие сетевой конфигурации утверждённой политике организации может привести к", "opts": ["рискам безопасности и усложнению сопровождения", "автоматическому росту производительности", "исчезновению физической кабельной системы", "отключению всех LED-индикаторов"], "ans": "рискам безопасности и усложнению сопровождения"}, {"q": "Политика именования устройств нужна для", "opts": ["единообразной идентификации оборудования", "увеличения числа доменов коллизий", "отключения удалённого доступа", "замены IP-адресов MAC-адресами"], "ans": "единообразной идентификации оборудования"}, {"q": "Ограничение списка узлов, которым разрешён доступ к управлению устройством, повышает", "opts": ["безопасность администрирования", "длину кадра Ethernet", "число широковещательных пакетов", "объём flash-памяти"], "ans": "безопасность администрирования"}, {"q": "Разделение прав доступа между администраторами необходимо для", "opts": ["контроля действий и соблюдения принципа минимальных привилегий", "отключения всех журналов", "отмены резервирования", "замены схемы топологии"], "ans": "контроля действий и соблюдения принципа минимальных привилегий"}, {"q": "Аудит конфигурации сетевых устройств позволяет", "opts": ["выявлять отклонения от стандартов и потенциальные риски", "только подсчитывать длину кабелей", "только измерять напряжение в розетках", "создавать доменные имена"], "ans": "выявлять отклонения от стандартов и потенциальные риски"}, {"q": "Хранение нескольких версий конфигураций полезно для", "opts": ["отката к рабочему состоянию после неудачных изменений", "замены консольного кабеля", "отключения маршрутизации", "удаления журналов"], "ans": "отката к рабочему состоянию после неудачных изменений"}, {"q": "Признаком качественного сопровождения сети является", "opts": ["наличие регулярного мониторинга, резервирования и актуальной документации", "отсутствие схем и описаний", "настройка наугад", "использование одинаковых паролей без учёта политики"], "ans": "наличие регулярного мониторинга, резервирования и актуальной документации"}, {"q": "Изменения конфигурации в рабочей сети желательно выполнять", "opts": ["контролируемо, с фиксацией и возможностью отката", "без уведомления и проверки", "только в часы наибольшей нагрузки", "без резервной копии"], "ans": "контролируемо, с фиксацией и возможностью отката"}, {"q": "Предварительное тестирование изменений на стенде помогает", "opts": ["снизить риск влияния на рабочую сеть", "полностью заменить документацию", "отключить необходимость в политике безопасности", "увеличить количество broadcast-пакетов"], "ans": "снизить риск влияния на рабочую сеть"}, {"q": "Обновление программного обеспечения сетевых устройств должно выполняться", "opts": ["по плану, с проверкой совместимости и резервированием", "случайным образом в любое время", "без анализа версии", "без резервной копии конфигурации"], "ans": "по плану, с проверкой совместимости и резервированием"}, {"q": "Контроль версий ОС сетевых устройств нужен для", "opts": ["своевременного устранения уязвимостей и поддержки совместимости", "выбора длины кабеля", "изменения MAC-адресов производителей", "отключения DHCP"], "ans": "своевременного устранения уязвимостей и поддержки совместимости"}, {"q": "При возникновении неисправности эффективная диагностика начинается с", "opts": ["проверки физического уровня и базовых настроек", "немедленной замены всех устройств", "удаления всей конфигурации", "смены названий VLAN"], "ans": "проверки физического уровня и базовых настроек"}, {"q": "Подход «от простого к сложному» в диагностике означает", "opts": ["сначала проверять питание, кабель, линк и IP-настройки", "сразу менять всю архитектуру сети", "начинать с переустановки всех систем", "игнорировать физический уровень"], "ans": "сначала проверять питание, кабель, линк и IP-настройки"}, {"q": "Сравнение текущей конфигурации с эталонной позволяет", "opts": ["выявить ошибочные или несанкционированные изменения", "отключить все интерфейсы", "автоматически создать новые VLAN", "заменить DHCP сервер"], "ans": "выявить ошибочные или несанкционированные изменения"}, {"q": "Практика по администрированию формирует способность", "opts": ["самостоятельно устанавливать, настраивать и сопровождать сетевые устройства", "работать только с теоретическими тестами", "избегать командной строки полностью", "ограничиваться чтением инструкций"], "ans": "самостоятельно устанавливать, настраивать и сопровождать сетевые устройства"}, {"q": "Результатом грамотной эксплуатации сетевого оборудования является", "opts": ["стабильная, управляемая и защищённая работа инфраструктуры", "постоянное возникновение конфликтов адресов", "невозможность удалённого доступа", "отсутствие резервных копий"], "ans": "стабильная, управляемая и защищённая работа инфраструктуры"}, {"q": "Поддержка сетевого оборудования организации включает", "opts": ["установку, конфигурирование, обновление, мониторинг и устранение сбоев", "только первоначальную распаковку", "только учёт серийных номеров", "только оформление кабинета"], "ans": "установку, конфигурирование, обновление, мониторинг и устранение сбоев"}, {"q": "Компетенция по ПМ5 в практическом смысле проявляется в умении", "opts": ["выполнять полный цикл работ с сетевыми устройствами от установки до сопровождения", "только запоминать аббревиатуры", "только пересказывать теорию", "только подключать питание без настройки"], "ans": "выполнять полный цикл работ с сетевыми устройствами от установки до сопровождения"}, {"q": "Устройство, усиливающее сигнал без анализа кадров", "opts": ["репитер", "маршрутизатор", "firewall", "DNS-сервер"], "ans": "репитер"}, {"q": "Концентратор Ethernet передаёт данные", "opts": ["только адресату", "на все порты", "только на uplink", "только в VLAN 1"], "ans": "на все порты"}, {"q": "Функция BPDU Guard предназначена для", "opts": ["защиты STP", "настройки NAT", "фильтрации DNS", "резервирования питания"], "ans": "защиты STP"}, {"q": "Sticky MAC используется для", "opts": ["автоматического запоминания MAC-адресов", "настройки VLAN", "обновления IOS", "проверки CRC"], "ans": "автоматического запоминания MAC-адресов"}, {"q": "Root Bridge в STP определяется по", "opts": ["наименьшему Bridge ID", "наибольшему IP", "скорости интерфейса", "номеру VLAN"], "ans": "наименьшему Bridge ID"}, {"q": "EtherChannel применяется для", "opts": ["объединения каналов", "настройки DNS", "создания ACL", "резервирования DHCP"], "ans": "объединения каналов"}, {"q": "Протокол LACP используется для", "opts": ["агрегирования интерфейсов", "шифрования SSH", "NAT", "синхронизации времени"], "ans": "агрегирования интерфейсов"}, {"q": "PVST+ позволяет", "opts": ["использовать отдельный STP для VLAN", "отключать VLAN", "фильтровать HTTP", "создавать DNS-записи"], "ans": "использовать отдельный STP для VLAN"}, {"q": "Rapid STP сокращает", "opts": ["время сходимости", "размер MAC", "скорость SSH", "объём flash"], "ans": "время сходимости"}, {"q": "Loop Guard применяется для", "opts": ["предотвращения петель", "настройки DHCP", "фильтрации SMTP", "настройки VTP"], "ans": "предотвращения петель"}, {"q": "VTP используется для", "opts": ["распространения VLAN", "настройки NAT", "управления DNS", "настройки PoE"], "ans": "распространения VLAN"}, {"q": "Режим VTP Server позволяет", "opts": ["изменять VLAN", "только просматривать VLAN", "отключать trunk", "фильтровать трафик"], "ans": "изменять VLAN"}, {"q": "VTP Transparent передаёт", "opts": ["VTP-сообщения без изменения VLAN", "только DNS", "только ARP", "только DHCP"], "ans": "VTP-сообщения без изменения VLAN"}, {"q": "Private VLAN применяется для", "opts": ["изоляции узлов", "резервирования IP", "фильтрации NAT", "обновления Linux"], "ans": "изоляции узлов"}, {"q": "QoS предназначен для", "opts": ["приоритизации трафика", "настройки BIOS", "обновления flash", "управления DHCP"], "ans": "приоритизации трафика"}, {"q": "DSCP используется для", "opts": ["маркировки QoS", "адресации VLAN", "настройки SSH", "маршрутизации OSPF"], "ans": "маркировки QoS"}, {"q": "Traffic Shaping выполняет", "opts": ["сглаживание трафика", "фильтрацию DNS", "удаление ACL", "резервирование маршрутов"], "ans": "сглаживание трафика"}, {"q": "Traffic Policing применяется для", "opts": ["ограничения полосы", "увеличения VLAN", "NAT", "шифрования ICMP"], "ans": "ограничения полосы"}, {"q": "NetFlow используется для", "opts": ["анализа потоков трафика", "настройки DHCP", "резервирования STP", "создания RAID"], "ans": "анализа потоков трафика"}, {"q": "SPAN-порт применяется для", "opts": ["зеркалирования трафика", "NAT", "VTP", "PoE"], "ans": "зеркалирования трафика"}, {"q": "RSPAN используется для", "opts": ["удалённого зеркалирования", "резервирования маршрутов", "обновления прошивки", "создания ACL"], "ans": "удалённого зеркалирования"}, {"q": "PortFast ускоряет", "opts": ["переход порта в forwarding", "работу DNS", "загрузку Linux", "обновление SSH"], "ans": "переход порта в forwarding"}, {"q": "DHCP Snooping защищает от", "opts": ["ложных DHCP-серверов", "перегрева", "CRC ошибок", "loopback"], "ans": "ложных DHCP-серверов"}, {"q": "Dynamic ARP Inspection предотвращает", "opts": ["ARP spoofing", "VLAN hopping", "DNS flooding", "перегрев CPU"], "ans": "ARP spoofing"}, {"q": "IP Source Guard используется для", "opts": ["проверки IP/MAC", "настройки NAT", "управления PoE", "резервирования ACL"], "ans": "проверки IP/MAC"}, {"q": "HSRP обеспечивает", "opts": ["отказоустойчивость шлюза", "фильтрацию SMTP", "настройку VLAN", "анализ пакетов"], "ans": "отказоустойчивость шлюза"}, {"q": "VRRP используется для", "opts": ["резервирования маршрутизаторов", "создания trunk", "QoS", "SNMP trap"], "ans": "резервирования маршрутизаторов"}, {"q": "GLBP обеспечивает", "opts": ["балансировку шлюзов", "NAT", "ACL", "STP"], "ans": "балансировку шлюзов"}, {"q": "OSPF использует алгоритм", "opts": ["Dijkstra", "Bellman-Ford", "CRC", "NAT"], "ans": "Dijkstra"}, {"q": "Area 0 в OSPF является", "opts": ["backbone area", "guest VLAN", "loopback zone", "private segment"], "ans": "backbone area"}, {"q": "Passive Interface в OSPF отключает", "opts": ["отправку hello", "VLAN", "ACL", "NAT"], "ans": "отправку hello"}, {"q": "DR в OSPF означает", "opts": ["designated router", "default route", "domain relay", "dynamic resolver"], "ans": "designated router"}, {"q": "BGP относится к протоколам", "opts": ["внешней маршрутизации", "внутренней VLAN", "DHCP relay", "QoS"], "ans": "внешней маршрутизации"}, {"q": "Autonomous System обозначается", "opts": ["AS", "ACL", "NAT", "STP"], "ans": "AS"}, {"q": "Redistribution маршрутов используется для", "opts": ["обмена маршрутами между протоколами", "настройки VLAN", "фильтрации ICMP", "настройки Linux"], "ans": "обмена маршрутами между протоколами"}, {"q": "Floating Static Route применяется для", "opts": ["резервного маршрута", "NAT overload", "ACL logging", "SNMP"], "ans": "резервного маршрута"}, {"q": "Route Summarization уменьшает", "opts": ["размер таблиц маршрутизации", "число VLAN", "MAC адреса", "SSH ключи"], "ans": "размер таблиц маршрутизации"}, {"q": "GRE Tunnel используется для", "opts": ["инкапсуляции трафика", "NAT", "DHCP", "QoS"], "ans": "инкапсуляции трафика"}, {"q": "IPSec обеспечивает", "opts": ["защищённую передачу", "фильтрацию VLAN", "настройку trunk", "резервирование DHCP"], "ans": "защищённую передачу"}, {"q": "Site-to-Site VPN соединяет", "opts": ["удалённые сети", "VLAN одного switch", "DNS серверы", "BIOS устройства"], "ans": "удалённые сети"}, {"q": "SSL VPN применяется для", "opts": ["удалённого доступа пользователей", "NAT", "QoS", "PoE"], "ans": "удалённого доступа пользователей"}, {"q": "IDS предназначена для", "opts": ["обнаружения атак", "настройки VLAN", "управления BIOS", "обновления flash"], "ans": "обнаружения атак"}, {"q": "IPS выполняет", "opts": ["предотвращение атак", "настройку DHCP", "NAT overload", "STP"], "ans": "предотвращение атак"}, {"q": "SIEM система используется для", "opts": ["анализа событий безопасности", "настройки trunk", "ACL маршрутизации", "резервирования питания"], "ans": "анализа событий безопасности"}, {"q": "Syslog severity level определяет", "opts": ["уровень важности событий", "скорость VLAN", "тип NAT", "размер flash"], "ans": "уровень важности событий"}, {"q": "RADIUS применяется для", "opts": ["централизованной аутентификации", "NAT", "VLAN", "QoS"], "ans": "централизованной аутентификации"}, {"q": "TACACS+ используется для", "opts": ["AAA управления", "DNS relay", "маршрутизации", "STP"], "ans": "AAA управления"}, {"q": "AAA включает", "opts": ["authentication authorization accounting", "access address arp", "advanced ACL analysis", "automatic address allocation"], "ans": "authentication authorization accounting"}, {"q": "Zero Trust предполагает", "opts": ["постоянную проверку доступа", "отключение firewall", "open access", "отсутствие ACL"], "ans": "постоянную проверку доступа"}, {"q": "Linux команда uname показывает", "opts": ["информацию о ядре", "VLAN", "ACL", "NAT"], "ans": "информацию о ядре"}, {"q": "Команда Linux для просмотра используемого места на диске", "opts": ["df -h", "route print", "show flash", "ip route"], "ans": "df -h"}, {"q": "Команда Linux для просмотра использования памяти", "opts": ["free -m", "netstat", "lsblk", "Traceroute"], "ans": "free -m"}, {"q": "Просмотр списка процессов Linux выполняется командой", "opts": ["ps aux", "ip route", "vlan show", "Nslookup"], "ans": "ps aux"}, {"q": "Команда kill используется для", "opts": ["завершения процесса", "удаления VLAN", "настройки ACL", "проверки DNS"], "ans": "завершения процесса"}, {"q": "Процесс с наибольшими привилегиями в Linux", "opts": ["init/systemd", "guest", "sshd", "apache"], "ans": "init/systemd"}, {"q": "Systemd отвечает за", "opts": ["управление службами", "NAT", "VLAN", "маршрутизацию OSPF"], "ans": "управление службами"}, {"q": "Команда systemctl status применяется для", "opts": ["проверки состояния службы", "создания VLAN", "анализа пакетов", "обновления BIOS"], "ans": "проверки состояния службы"}, {"q": "Перезапуск службы Linux выполняется командой", "opts": ["systemctl restart", "service vlan", "ip service", "restart route"], "ans": "systemctl restart"}, {"q": "Журналы systemd просматриваются командой", "opts": ["journalctl", "route print", "flash show", "net view"], "ans": "journalctl"}, {"q": "Каталог системных логов Linux", "opts": ["/var/log", "/etc/network", "/usr/bin", "/home/admin"], "ans": "/var/log"}, {"q": "Команда grep используется для", "opts": ["поиска текста", "настройки DHCP", "резервирования ACL", "проверки VLAN"], "ans": "поиска текста"}, {"q": "Команда tail позволяет", "opts": ["просматривать конец файла", "удалить ACL", "настроить NAT", "обновить kernel"], "ans": "просматривать конец файла"}, {"q": "Команда head показывает", "opts": ["начало файла", "таблицу маршрутов", "VLAN database", "DNS cache"], "ans": "начало файла"}, {"q": "Архивация файлов Linux выполняется утилитой", "opts": ["tar", "ping", "iptables", "ssh-keygen"], "ans": "tar"}, {"q": "Сжатие gzip создаёт файл", "opts": [".gz", ".acl", ".vlan", ".nat"], "ans": ".gz"}, {"q": "Команда scp используется для", "opts": ["безопасного копирования файлов", "настройки STP", "NAT overload", "обновления DNS"], "ans": "безопасного копирования файлов"}, {"q": "SSH-ключи Linux создаются командой", "opts": ["ssh-keygen", "generate rsa", "crypto create", "key build"], "ans": "ssh-keygen"}, {"q": "Команда passwd предназначена для", "opts": ["смены пароля", "настройки VLAN", "анализа QoS", "маршрутизации"], "ans": "смены пароля"}, {"q": "Добавление пользователя Linux выполняется командой", "opts": ["useradd", "add vlan", "route add", "acl create"], "ans": "useradd"}, {"q": "Удаление пользователя Linux выполняется", "opts": ["userdel", "delete user route", "erase login", "remove acl"], "ans": "userdel"}, {"q": "Группы пользователей Linux управляются командой", "opts": ["groupadd", "vlan add", "qos enable", "iptables"], "ans": "groupadd"}, {"q": "Sudo позволяет", "opts": ["выполнять команды от root", "резервировать VLAN", "отключать NAT", "создавать ACL"], "ans": "выполнять команды от root"}, {"q": "Файл /etc/passwd содержит", "opts": ["информацию о пользователях", "VLAN database", "ACL rules", "NAT таблицы"], "ans": "информацию о пользователях"}, {"q": "Файл /etc/shadow хранит", "opts": ["хеши паролей", "MAC адреса", "DNS записи", "таблицы маршрутов"], "ans": "хеши паролей"}, {"q": "Linux firewall низкого уровня", "opts": ["iptables", "STP", "GRE", "VTP"], "ans": "iptables"}, {"q": "nftables является", "opts": ["современным firewall Linux", "VLAN протоколом", "маршрутизатором", "DHCP relay"], "ans": "современным firewall Linux"}, {"q": "Fail2ban используется для", "opts": ["защиты от brute force", "NAT overload", "анализа CRC", "настройки trunk"], "ans": "защиты от brute force"}, {"q": "SELinux обеспечивает", "opts": ["контроль безопасности", "маршрутизацию VLAN", "NAT", "STP"], "ans": "контроль безопасности"}, {"q": "AppArmor применяется для", "opts": ["ограничения приложений", "QoS", "SNMP", "ACL routing"], "ans": "ограничения приложений"}, {"q": "Cron используется для", "opts": ["планирования задач", "VLAN trunk", "DNS relay", "обновления STP"], "ans": "планирования задач"}, {"q": "Crontab хранит", "opts": ["расписание задач", "ACL", "NAT таблицы", "VLAN database"], "ans": "расписание задач"}, {"q": "Команда chmod 755 означает", "opts": ["rwxr-xr-x", "rw-rw-rw-", "r--------", "rwxrwx---"], "ans": "rwxr-xr-x"}, {"q": "Символическая ссылка Linux создаётся", "opts": ["ln -s", "route add", "vlan trunk", "ssh enable"], "ans": "ln -s"}, {"q": "Команда mount используется для", "opts": ["подключения файловых систем", "настройки NAT", "ACL фильтрации", "QoS"], "ans": "подключения файловых систем"}, {"q": "Размонтирование выполняется командой", "opts": ["umount", "remove disk", "shutdown fs", "erase mount"], "ans": "umount"}, {"q": "RAID 1 обеспечивает", "opts": ["зеркалирование", "striping без отказоустойчивости", "только parity", "NAT"], "ans": "зеркалирование"}, {"q": "RAID 5 использует", "opts": ["распределённый parity", "только mirror", "VLAN tagging", "GRE tunnel"], "ans": "распределённый parity"}, {"q": "LVM в Linux применяется для", "opts": ["гибкого управления томами", "NAT", "STP", "DHCP"], "ans": "гибкого управления томами"}, {"q": "Swap используется как", "opts": ["виртуальная память", "VLAN storage", "ACL buffer", "DNS cache"], "ans": "виртуальная память"}, {"q": "Команда fdisk применяется для", "opts": ["управления разделами", "NAT overload", "настройки QoS", "маршрутизации"], "ans": "управления разделами"}, {"q": "Проверка файловой системы Linux", "opts": ["fsck", "vlan check", "arp scan", "nat test"], "ans": "fsck"}, {"q": "Команда ping -c 4 означает", "opts": ["отправку 4 пакетов", "4 VLAN", "4 маршрута", "4 ACL"], "ans": "отправку 4 пакетов"}, {"q": "Netstat применяется для", "opts": ["просмотра сетевых соединений", "настройки VLAN", "резервирования DHCP", "STP"], "ans": "просмотра сетевых соединений"}, {"q": "Команда ss считается заменой", "opts": ["netstat", "ip route", "tcpdump", "vlan show"], "ans": "netstat"}, {"q": "Tcpdump используется для", "opts": ["захвата пакетов", "NAT overload", "VLAN trunk", "ACL logging"], "ans": "захвата пакетов"}, {"q": "Wireshark анализирует", "opts": ["сетевой трафик", "BIOS", "RAID", "VTP"], "ans": "сетевой трафик"}, {"q": "MTU определяет", "opts": ["максимальный размер пакета", "скорость CPU", "VLAN ID", "размер ACL"], "ans": "максимальный размер пакета"}, {"q": "Jumbo Frames увеличивают", "opts": ["размер Ethernet кадра", "число VLAN", "скорость DNS", "ACL rules"], "ans": "размер Ethernet кадра"}, {"q": "Latency обозначает", "opts": ["задержку сети", "скорость flash", "NAT таблицу", "VLAN trunk"], "ans": "задержку сети"}, {"q": "Throughput означает", "opts": ["реальную пропускную способность", "MAC адрес", "ACL count", "loopback"], "ans": "реальную пропускную способность"}, {"q": "Bandwidth обозначает", "opts": ["теоретическую пропускную способность", "размер VLAN", "NAT overload", "CPU load"], "ans": "теоретическую пропускную способность"}, {"q": "Jitter критичен для", "opts": ["VoIP", "DNS", "DHCP", "VLAN"], "ans": "VoIP"}, {"q": "MPLS применяется для", "opts": ["маркированной коммутации", "RAID", "BIOS", "ACL"], "ans": "маркированной коммутации"}, {"q": "SDN означает", "opts": ["программно-определяемая сеть", "системный DNS NAT", "secure dynamic node", "switched data network"], "ans": "программно-определяемая сеть"}, {"q": "Контроллер SDN управляет", "opts": ["сетевой инфраструктурой централизованно", "BIOS", "RAID массивами", "DHCP relay"], "ans": "сетевой инфраструктурой централизованно"}, {"q": "VXLAN используется для", "opts": ["виртуализации сетей", "NAT", "ACL logging", "QoS shaping"], "ans": "виртуализации сетей"}, {"q": "Overlay Network создаётся", "opts": ["поверх физической сети", "вместо VLAN", "вместо DNS", "вместо SSH"], "ans": "поверх физической сети"}, {"q": "EVPN применяется для", "opts": ["расширения L2 через IP", "настройки RAID", "ACL routing", "STP backup"], "ans": "расширения L2 через IP"}, {"q": "IPv6 адрес содержит", "opts": ["128 бит", "64 бит", "32 бит", "16 бит"], "ans": "128 бит"}, {"q": "IPv6 loopback адрес", "opts": ["::1", "127.0.0.1", "FE80::1", "FF::1"], "ans": "::1"}, {"q": "Link-local IPv6 начинается с", "opts": ["FE80", "2001", "FF00", "FC00"], "ans": "FE80"}, {"q": "SLAAC используется для", "opts": ["автоматической настройки IPv6", "NAT overload", "VLAN routing", "ACL filtering"], "ans": "автоматической настройки IPv6"}, {"q": "Dual Stack означает", "opts": ["одновременную работу IPv4 и IPv6", "два VLAN", "два маршрутизатора", "два DHCP сервера"], "ans": "одновременную работу IPv4 и IPv6"}, {"q": "Протокол автоматической настройки IPv6-клиентов", "opts": ["OpenVPN", "DHCPv6", "Docker Swarm", "WireGuard"], "ans": "DHCPv6"}, {"q": "Технология групповой передачи данных IPv6", "opts": ["Multicast", "PXE Boot", "CephFS", "HAProxy"], "ans": "Multicast"}, {"q": "Механизм предотвращения петель маршрутизации RIP", "opts": ["Route poisoning", "OpenStack", "Kubernetes", "Netplan"], "ans": "Route poisoning"}, {"q": "Технология защиты от циклической маршрутизации", "opts": ["Split Horizon", "Graylog", "Hypervisor", "Filebeat"], "ans": "Split Horizon"}, {"q": "Показатель доверия к маршруту Cisco", "opts": ["Administrative Distance", "OpenLDAP", "RabbitMQ", "Portainer"], "ans": "Administrative Distance"}, {"q": "Основной параметр выбора маршрута в протоколе OSPF", "opts": ["задержка канала", "количество хостов", "стоимость маршрута", "размер пакета"], "ans": "стоимость маршрута"}, {"q": "Пакеты обнаружения соседей OSPF", "opts": ["Hello packets", "Grafana Agent", "OpenVAS", "Elasticsearch"], "ans": "Hello packets"}, {"q": "Механизм быстрого обнаружения отказов сети", "opts": ["BFD", "Terraform", "Syncthing", "Cockpit"], "ans": "BFD"}, {"q": "Технология многопутевой маршрутизации", "opts": ["ECMP", "Loki Stack", "OpenNebula", "Apache Kafka"], "ans": "ECMP"}, {"q": "Компонент оптимизации маршрутов BGP", "opts": ["Route Reflector", "DRBD Cluster", "Lighttpd", "FreeRADIUS"], "ans": "Route Reflector"}, {"q": "Средство фильтрации маршрутов Cisco", "opts": ["Prefix-list", "OpenSSL", "Keepalived", "Monit"], "ans": "Prefix-list"}, {"q": "Маркировка маршрутов в BGP", "opts": ["Community", "PXE Relay", "Ceph Monitor", "GitLab Runner"], "ans": "Community"}, {"q": "Хранилище результатов DNS-запросов", "opts": ["DNS Cache", "Docker Secret", "OpenConnect", "Netcat"], "ans": "DNS Cache"}, {"q": "Служба поиска DNS-записей в интернете", "opts": ["Recursive DNS resolver", "Graylog Sidecar", "VMware Snapshot", "Kubernetes Pod"], "ans": "Recursive DNS resolver"}, {"q": "Технология определения имени по IP-адресу", "opts": ["Reverse DNS", "OpenVPN Peer", "Redis Sentinel", "Zabbix Template"], "ans": "Reverse DNS"}, {"q": "DNS-запись защиты почтовых доменов", "opts": ["SPF", "OpenSSH Tunnel", "PXE Service", "Loki Collector"], "ans": "SPF"}, {"q": "Механизм цифровой подписи электронной почты", "opts": ["DKIM", "Docker Volume", "Hyper-V Replica", "OpenStack Volume"], "ans": "DKIM"}, {"q": "Политика проверки безопасности электронной почты", "opts": ["DMARC", "Apache Module", "WireGuard Peer", "Filebeat Output"], "ans": "DMARC"}, {"q": "Сервер промежуточной обработки запросов", "opts": ["Proxy Server", "Kubernetes Node", "OpenNebula Host", "rsyslog-ng"], "ans": "Proxy Server"}, {"q": "Сервер защиты внутренних веб-ресурсов", "opts": ["Reverse Proxy", "Terraform Apply", "RabbitMQ Broker", "OpenLDAP Realm"], "ans": "Reverse Proxy"}, {"q": "Система распределения нагрузки между серверами", "opts": ["Load Balancer", "Ceph Pool", "PXE Loader", "VMware Cluster"], "ans": "Load Balancer"}, {"q": "Сеть ускоренной доставки контента", "opts": ["CDN", "Docker Compose", "Grafana Alert", "OpenVAS Policy"], "ans": "CDN"}, {"q": "Программная платформа виртуализации", "opts": ["Hypervisor", "Dnsmasq Lease", "GitOps Deploy", "Prometheus Query"], "ans": "Hypervisor"}, {"q": "Гипервизор Linux Kernel-based Virtual Machine", "opts": ["KVM", "OpenVPN Client", "DRBD Sync", "Portainer Agent"], "ans": "KVM"}, {"q": "Технология контейнеризации приложений", "opts": ["Docker", "OpenConnect VPN", "PXE Image", "Zabbix Proxy"], "ans": "Docker"}, {"q": "Платформа оркестрации контейнеров", "opts": ["Kubernetes", "Hypervisor Console", "NetFlow Exporter", "Apache Proxy"], "ans": "Kubernetes"}, {"q": "Метод автоматизации разработки и доставки ПО", "opts": ["CI/CD", "OpenLDAP Entry", "WireGuard Tunnel", "CephFS Mount"], "ans": "CI/CD"}, {"q": "Система контроля версий кода", "opts": ["Git", "OpenNebula API", "PXE Install", "Docker Engine"], "ans": "Git"}, {"q": "Средство автоматизации конфигурации серверов", "opts": ["Ansible", "RabbitMQ Queue", "VMware Host", "Filebeat Agent"], "ans": "Ansible"}, {"q": "Платформа управления инфраструктурой как кодом", "opts": ["Terraform", "Kubernetes Secret", "OpenSSH Config", "Graylog Pipeline"], "ans": "Terraform"}, {"q": "Интерфейс взаимодействия сервисов по HTTP", "opts": ["REST API", "PXE Routing", "DRBD Volume", "Hyper-V Switch"], "ans": "REST API"}, {"q": "Формат структурированного обмена данными", "opts": ["JSON", "Docker Stack", "OpenConnect Host", "Ceph Journal"], "ans": "JSON"}, {"q": "Формат конфигурационных файлов DevOps", "opts": ["YAML", "GitLab CI", "Apache Kafka", "VMware Console"], "ans": "YAML"}, {"q": "Методология объединения разработки и эксплуатации", "opts": ["DevOps", "PXE Deploy", "WireGuard Server", "Loki Dashboard"], "ans": "DevOps"}, {"q": "Платформа централизованного сбора событий безопасности", "opts": ["SIEM", "Docker Registry", "RabbitMQ Node", "OpenVPN GUI"], "ans": "SIEM"}, {"q": "Центр мониторинга информационной безопасности", "opts": ["SOC", "Hyper-V Host", "PXELinux", "Portainer UI"], "ans": "SOC"}, {"q": "План восстановления инфраструктуры после аварии", "opts": ["Disaster Recovery Plan", "OpenVAS Scanner", "Kubernetes Service", "DRBD Mirror"], "ans": "Disaster Recovery Plan"}];
+
+// --- Visual diagrams ---
+function getDiagram(q){
+  const qt=q.q+' '+q.ans;
+  if(/коммутатор|switch|MAC.таблиц|канальный уровень|VLAN|trunk|access.порт|STP|широковещательный домен/i.test(qt)){
+    return drawSwitch;
+  }
+  if(/маршрутизатор|routing|маршрут|шлюз|сетевой уровень|OSPF|BGP|ACL|NAT|traceroute/i.test(qt)){
+    return drawRouter;
+  }
+  if(/OSI|уровн/i.test(qt)){
+    return drawOSI;
+  }
+  if(/IPv4|маска|подсеть|адрес сети|broadcast|\/24|\/25|\/30|192\.168|172\.16|10\./i.test(qt)){
+    return drawSubnet;
+  }
+  if(/SSH|Telnet|консол|VTY|crypto|RSA/i.test(qt)){
+    return drawSSH;
+  }
+  if(/DHCP/i.test(qt)){
+    return drawDHCP;
+  }
+  if(/DNS/i.test(qt)){
+    return drawDNS;
+  }
+  if(/TCP|UDP|порт 22|порт 23|порт 53|порт 67/i.test(qt)){
+    return drawTCP;
+  }
+  return null;
+}
+
+function makeCanvas(w,h){
+  const c=document.createElement('canvas');
+  c.width=w;c.height=h;
+  c.style.width='100%';c.style.maxHeight=h+'px';
+  return c;
+}
+
+function drawBox(ctx,x,y,w,h,label,bg='#dbeafe',fg='#1e40af'){
+  ctx.fillStyle=bg;ctx.strokeStyle=fg;ctx.lineWidth=2;
+  ctx.beginPath();ctx.roundRect(x,y,w,h,8);ctx.fill();ctx.stroke();
+  ctx.fillStyle=fg;ctx.font='bold 13px Onest,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(label,x+w/2,y+h/2);
+}
+function arrow(ctx,x1,y1,x2,y2,label='',col='#6b7280'){
+  ctx.strokeStyle=col;ctx.lineWidth=2;ctx.fillStyle=col;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  const a=Math.atan2(y2-y1,x2-x1);
+  ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-10*Math.cos(a-0.4),y2-10*Math.sin(a-0.4));ctx.lineTo(x2-10*Math.cos(a+0.4),y2-10*Math.sin(a+0.4));ctx.closePath();ctx.fill();
+  if(label){ctx.fillStyle='#374151';ctx.font='11px Onest,sans-serif';ctx.textAlign='center';ctx.fillText(label,(x1+x2)/2,(y1+y2)/2-8);}
+}
+
+function drawSwitch(container){
+  const c=makeCanvas(560,160);container.appendChild(c);
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f8faff';ctx.fillRect(0,0,560,160);
+  // Switch in center
+  drawBox(ctx,210,60,140,40,'🔀 Switch','#dbeafe','#1e40af');
+  // PCs on left
+  drawBox(ctx,30,40,90,30,'PC 1 (VLAN10)','#dcfce7','#16a34a');
+  drawBox(ctx,30,90,90,30,'PC 2 (VLAN20)','#fef9c3','#92400e');
+  // PCs on right
+  drawBox(ctx,440,40,90,30,'PC 3 (VLAN10)','#dcfce7','#16a34a');
+  drawBox(ctx,440,90,90,30,'Router','#ede9fe','#6d28d9');
+  // Lines
+  arrow(ctx,120,55,210,72,'access','#16a34a');
+  arrow(ctx,120,105,210,88,'access','#92400e');
+  arrow(ctx,350,72,440,55,'trunk','#6d28d9');
+  arrow(ctx,350,88,440,105,'trunk','#6d28d9');
+  ctx.fillStyle='#374151';ctx.font='11px Onest,sans-serif';ctx.textAlign='center';
+  ctx.fillText('Access-порт — один VLAN | Trunk-порт — несколько VLAN',280,148);
+}
+
+function drawRouter(container){
+  const c=makeCanvas(560,160);container.appendChild(c);
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f8faff';ctx.fillRect(0,0,560,160);
+  drawBox(ctx,220,60,120,40,'🔁 Router','#ede9fe','#6d28d9');
+  drawBox(ctx,30,60,100,40,'Сеть A\n192.168.1.0/24','#dbeafe','#1e40af');
+  drawBox(ctx,430,60,100,40,'Сеть B\n10.0.0.0/8','#dcfce7','#16a34a');
+  arrow(ctx,130,80,220,80,'IP-пакет','#6d28d9');
+  arrow(ctx,340,80,430,80,'маршрут','#16a34a');
+  ctx.fillStyle='#374151';ctx.font='11px Onest,sans-serif';ctx.textAlign='center';
+  ctx.fillText('Маршрутизатор соединяет разные сети по IP-адресам',280,148);
+}
+
+function drawOSI(container){
+  const c=makeCanvas(560,170);container.appendChild(c);
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f8faff';ctx.fillRect(0,0,560,170);
+  const layers=[['7. Приложение','#fee2e2','#991b1b'],['6. Представление','#fef9c3','#92400e'],['5. Сеанс','#fef3c7','#78350f'],['4. Транспорт','#d1fae5','#065f46'],['3. Сеть','#dbeafe','#1e40af'],['2. Канальный','#ede9fe','#4c1d95'],['1. Физический','#f3f4f6','#374151']];
+  layers.forEach(([lbl,bg,fg],i)=>{drawBox(ctx,40,8+i*22,260,20,lbl,bg,fg);});
+  const examples=['HTTP, FTP, SSH','Шифрование','Установка соединений','TCP / UDP','IP, ICMP, Router','Ethernet, Switch, MAC','Кабели, хабы, сигнал'];
+  examples.forEach((ex,i)=>{ctx.fillStyle='#6b7280';ctx.font='11px Onest,sans-serif';ctx.textAlign='left';ctx.fillText(ex,315,8+i*22+13);});
+}
+
+function drawSubnet(container){
+  const c=makeCanvas(560,160);container.appendChild(c);
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f8faff';ctx.fillRect(0,0,560,160);
+  drawBox(ctx,30,20,500,40,'192.168.1.0 / 24','#dbeafe','#1e40af');
+  ctx.fillStyle='#1e40af';ctx.font='bold 12px Onest,sans-serif';ctx.textAlign='left';
+  ctx.fillText('Адрес сети: 192.168.1.0',40,88);
+  ctx.fillText('Первый хост: 192.168.1.1',40,108);
+  ctx.fillText('Последний хост: 192.168.1.254',40,128);
+  ctx.fillText('Broadcast: 192.168.1.255',300,88);
+  ctx.fillText('Маска: 255.255.255.0',300,108);
+  ctx.fillText('Хостов: 254',300,128);
+}
+
+function drawSSH(container){
+  const c=makeCanvas(560,150);container.appendChild(c);
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f8faff';ctx.fillRect(0,0,560,150);
+  drawBox(ctx,30,55,120,40,'💻 Клиент','#dbeafe','#1e40af');
+  drawBox(ctx,410,55,120,40,'🔀 Устройство','#dcfce7','#16a34a');
+  // Encrypted channel
+  ctx.setLineDash([6,3]);ctx.strokeStyle='#6d28d9';ctx.lineWidth=3;
+  ctx.beginPath();ctx.rect(155,45,250,60);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#6d28d9';ctx.font='bold 12px Onest,sans-serif';ctx.textAlign='center';
+  ctx.fillText('🔒 SSH — зашифрованный канал (порт 22)',280,72);
+  ctx.fillStyle='#dc2626';ctx.font='11px Onest,sans-serif';
+  ctx.fillText('Telnet — данные открытым текстом (порт 23) ❌',280,115);
+  arrow(ctx,150,75,155,75,'','#1e40af');
+  arrow(ctx,405,75,400,75,'','#16a34a');
+}
+
+function drawDHCP(container){
+  const c=makeCanvas(560,155);container.appendChild(c);
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f8faff';ctx.fillRect(0,0,560,155);
+  drawBox(ctx,30,60,120,40,'💻 Клиент','#dbeafe','#1e40af');
+  drawBox(ctx,410,60,120,40,'📡 DHCP Сервер','#dcfce7','#16a34a');
+  const steps=[['1. DISCOVER →','','#f59e0b'],['← 2. OFFER','','#16a34a'],['3. REQUEST →','','#3b6ef8'],['← 4. ACK  ','IP выдан','#16a34a']];
+  steps.forEach(([label,note],i)=>{
+    const y=20+i*32;const right=(i%2===0);
+    ctx.strokeStyle=right?'#3b6ef8':'#16a34a';ctx.lineWidth=1.5;ctx.setLineDash([4,2]);
+    ctx.beginPath();ctx.moveTo(150,y);ctx.lineTo(410,y);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#374151';ctx.font='bold 11px Onest,sans-serif';ctx.textAlign='center';
+    ctx.fillText(label+' '+note,280,y-4);
+  });
+}
+
+function drawDNS(container){
+  const c=makeCanvas(560,150);container.appendChild(c);
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f8faff';ctx.fillRect(0,0,560,150);
+  drawBox(ctx,20,55,130,40,'💻 Браузер','#dbeafe','#1e40af');
+  drawBox(ctx,220,55,120,40,'🗂 DNS Сервер','#fef9c3','#92400e');
+  drawBox(ctx,410,55,130,40,'🌐 Сайт\n93.184.216.34','#dcfce7','#16a34a');
+  arrow(ctx,150,70,220,70,'google.com?','#1e40af');
+  arrow(ctx,340,83,220,83,'← 142.250.80.14','#92400e');
+  arrow(ctx,280,70,410,70,'IP → connect','#16a34a');
+  ctx.fillStyle='#6b7280';ctx.font='11px Onest,sans-serif';ctx.textAlign='center';
+  ctx.fillText('DNS преобразует имена в IP-адреса (порт 53)',280,142);
+}
+
+function drawTCP(container){
+  const c=makeCanvas(560,155);container.appendChild(c);
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f8faff';ctx.fillRect(0,0,560,155);
+  drawBox(ctx,20,10,200,50,'TCP','#dbeafe','#1e40af');
+  ctx.fillStyle='#1e40af';ctx.font='11px Onest,sans-serif';ctx.textAlign='left';
+  ctx.fillText('✅ Надёжная доставка',30,43);
+  ctx.fillText('✅ Контроль ошибок, порядка',30,58);
+  ctx.fillText('📦 HTTP, SSH, FTP',30,73);
+  drawBox(ctx,340,10,200,50,'UDP','#fef9c3','#92400e');
+  ctx.fillStyle='#92400e';
+  ctx.fillText('⚡ Быстрая передача',350,43);
+  ctx.fillText('❌ Без гарантии доставки',350,58);
+  ctx.fillText('🎮 VoIP, DNS, DHCP',350,73);
+  ctx.strokeStyle='#e5e7eb';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(280,5);ctx.lineTo(280,80);ctx.stroke();
+  // Ports
+  ctx.fillStyle='#374151';ctx.font='bold 11px Onest,sans-serif';ctx.textAlign='center';
+  ctx.fillText('Порты: SSH=22  Telnet=23  DNS=53  DHCP=67  HTTP=80  HTTPS=443',280,120);
+}
+
+// --- State ---
+let queue=[],idx=0,correct=0,wrong=0,answered=false,mode='all';
+let wrongSet=new Set();
+let shuffledOpts=[];
+
+function shuffle(a){let b=[...a];for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.mode-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['all','wrong','r20','r50','r100'][i]===m);
+  });
+  startQuiz();
+}
+
+function startQuiz(){
+  let pool;
+  if(mode==='all') pool=[...ALL];
+  else if(mode==='wrong'){pool=[...wrongSet].map(i=>ALL[i]);if(!pool.length)pool=[...ALL];wrongSet.clear();}
+  else if(mode==='r20') pool=shuffle(ALL).slice(0,20);
+  else if(mode==='r50') pool=shuffle(ALL).slice(0,50);
+  else pool=shuffle(ALL).slice(0,100);
+  queue=shuffle(pool);
+  shuffledOpts=queue.map(q=>shuffle(q.opts));
+  idx=0;correct=0;wrong=0;
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('q-card').style.display='';
+  document.getElementById('options').style.display='';
+  document.querySelector('.controls').style.display='';
+  document.querySelector('.kb').style.display='';
+  document.getElementById('explain-card').classList.remove('show');
+  document.getElementById('q-total-lbl').textContent=queue.length+' вопросов';
+  updateStats();renderQ();
+}
+
+function renderQ(){
+  if(idx>=queue.length){showResults();return;}
+  answered=false;
+  const q=queue[idx];
+  const opts=shuffledOpts[idx];
+  document.getElementById('q-num').textContent='Вопрос '+(idx+1);
+  document.getElementById('q-counter').textContent=(idx+1)+' / '+queue.length;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('explain-card').classList.remove('show');
+  document.getElementById('btn-next').disabled=true;
+
+  // Diagram
+  const dc=document.getElementById('diagram-container');
+  dc.innerHTML='';
+  const fn=getDiagram(q);
+  if(fn){
+    const wrap=document.createElement('div');wrap.className='diagram-wrap';
+    const title=document.createElement('div');title.className='diagram-title';title.textContent='📊 Схема';
+    wrap.appendChild(title);fn(wrap);dc.appendChild(wrap);
+  }
+
+  // Options
+  const cont=document.getElementById('options');cont.innerHTML='';
+  const labels=['A','B','C','D'];
+  opts.forEach((text,i)=>{
+    const btn=document.createElement('button');btn.className='opt';
+    btn.innerHTML=`<span class="opt-key">${labels[i]}</span><span class="opt-text">${text}</span>`;
+    btn.onclick=()=>answer(btn,text,q);
+    cont.appendChild(btn);
+  });
+
+  // Progress
+  const pct=Math.round(idx/queue.length*100);
+  document.getElementById('prog').style.width=pct+'%';
+}
+
+async function answer(btn,selected,q){
+  if(answered)return;
+  answered=true;
+  const isOk=selected===q.ans;
+  if(isOk){correct++;btn.classList.add('correct');}
+  else{
+    wrong++;btn.classList.add('wrong');
+    document.querySelectorAll('.opt').forEach(b=>{
+      if(b.querySelector('.opt-text').textContent===q.ans)b.classList.add('correct');
+    });
+    const oi=ALL.findIndex(x=>x.q===q.q);
+    if(oi!==-1)wrongSet.add(oi);
+  }
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  document.getElementById('btn-next').disabled=false;
+  updateStats();
+  // Show AI explanation
+  await showExplanation(q,isOk);
+}
+
+async function showExplanation(q,isOk){
+  const card=document.getElementById('explain-card');
+  const body=document.getElementById('explain-body');
+  card.style.borderLeftColor=isOk?'var(--green)':'var(--red)';
+  body.innerHTML='<div class="explain-loading"><div class="spinner"></div> ИИ объясняет...</div>';
+  card.classList.add('show');
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:'Ты преподаватель сетевых технологий. Отвечай ТОЛЬКО на русском. Объяснение должно быть простым, как студенту — 2-4 предложения максимум. Используй аналогии из жизни. Если есть команда Cisco или Linux — покажи её. Никаких заголовков и форматирования markdown.',
+        messages:[{role:'user',content:`Вопрос: "${q.q}"\nПравильный ответ: "${q.ans}"\n\nОбъясни почему это правильный ответ просто и понятно. Помоги студенту запомнить, а не зазубрить.`}]
+      })
+    });
+    const data=await resp.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'Не удалось получить объяснение.';
+    body.innerHTML=text.replace(/\n/g,'<br>');
+  }catch(e){
+    body.innerHTML='💡 <b>'+q.ans+'</b> — правильный ответ. Подключись к интернету для подробного объяснения от ИИ.';
+  }
+}
+
+function nextQ(){idx++;renderQ();}
+
+function updateStats(){
+  const t=correct+wrong;
+  document.getElementById('s-tot').textContent=t;
+  document.getElementById('s-ok').textContent=correct;
+  document.getElementById('s-bad').textContent=wrong;
+  document.getElementById('s-pct').textContent=t?Math.round(correct/t*100)+'%':'—';
+}
+
+function showResults(){
+  document.getElementById('q-card').style.display='none';
+  document.getElementById('options').style.display='none';
+  document.querySelector('.controls').style.display='none';
+  document.querySelector('.kb').style.display='none';
+  document.getElementById('explain-card').classList.remove('show');
+  const r=document.getElementById('results');r.classList.add('show');
+  const pct=Math.round(correct/queue.length*100);
+  document.getElementById('r-score').textContent=pct+'%';
+  let emoji,msg;
+  if(pct>=90){emoji='🏆';msg='Отлично! Стипендия твоя 💪';}
+  else if(pct>=75){emoji='🎯';msg='Хорошо! Ещё немного — и будет отлично.';}
+  else if(pct>=60){emoji='📚';msg='Неплохо. Нажми "Повторить ошибки"!';}
+  else{emoji='💪';msg='Жми "Повторить ошибки" — там твои слабые места. Не сдавайся!';}
+  document.getElementById('r-emoji').textContent=emoji;
+  document.getElementById('r-msg').textContent=correct+' из '+queue.length+' правильно · '+msg;
+  document.getElementById('prog').style.width='100%';
+}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  const map={a:'A',b:'B',c:'C',d:'D','1':'A','2':'B','3':'C','4':'D'};
+  const k=map[e.key.toLowerCase()];
+  if(k&&!answered){
+    const btns=document.querySelectorAll('.opt');
+    ['A','B','C','D'].forEach((lbl,i)=>{if(lbl===k&&btns[i])btns[i].click();});
+  }
+  if((e.key==='Enter'||e.key==='ArrowRight')&&!document.getElementById('btn-next').disabled)nextQ();
+});
+
+startQuiz();
+</script>
+</body>
+</html>
